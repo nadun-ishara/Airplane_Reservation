@@ -1,48 +1,89 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
 
-<VBox prefHeight="600.0" prefWidth="900.0" spacing="20.0" 
-      styleClass="dashboard-container" stylesheets="@../css/styles.css"
-      xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
-      fx:controller="com.airline.controller.DashboardController">
-   
-    <!-- Header Section -->
-    <HBox alignment="CENTER_LEFT" spacing="20.0">
-        <Label styleClass="dashboard-title" text="Flight Search &amp; Reservations" />
-    </HBox>
+<ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: #F4F7F6;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.airline.controller.DashboardController">
+    <VBox spacing="25.0" style="-fx-padding: 30;">
+        
+        <!-- Header -->
+        <HBox alignment="CENTER_LEFT">
+            <VBox spacing="5">
+                <Label text="Reservation Dashboard" style="-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
+                <Label text="Monitoring real-time traffic for CMB to DXB routes." style="-fx-text-fill: #6c757d;"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="↻ Refresh Data" onAction="#handleClear" styleClass="secondary-button" style="-fx-background-color: #E2E8F0; -fx-border-color: transparent;"/>
+        </HBox>
 
-    <!-- Search / Filter Bar -->
-    <HBox alignment="CENTER_LEFT" spacing="15.0" styleClass="search-bar">
-        <TextField fx:id="departureSearch" prefWidth="200.0" promptText="Departure City (e.g., Colombo)" styleClass="input-field" />
-        <TextField fx:id="arrivalSearch" prefWidth="200.0" promptText="Arrival City (e.g., Dubai)" styleClass="input-field" />
-        <Button fx:id="searchBtn" mnemonicParsing="false" onAction="#handleSearch" styleClass="primary-button" text="Search Flights" />
-        <Button mnemonicParsing="false" onAction="#handleClear" styleClass="secondary-button" text="Clear" />
-    </HBox>
+        <!-- Search & Table Card -->
+        <VBox styleClass="booking-card" spacing="20">
+            <padding><Insets top="25" right="25" bottom="25" left="25"/></padding>
+            
+            <Label text="Flight Search &amp; Reservations" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
+            
+            <!-- Search Bar -->
+            <HBox spacing="15" alignment="CENTER_LEFT">
+                <VBox spacing="5">
+                    <Label text="Departure City" styleClass="field-label"/>
+                    <TextField fx:id="departureSearch" promptText="Colombo (CMB)" styleClass="input-field" prefWidth="250"/>
+                </VBox>
+                <Label text="⇄" style="-fx-font-size: 20px; -fx-text-fill: #1CA1F2; -fx-padding: 20 0 0 0;"/>
+                <VBox spacing="5">
+                    <Label text="Arrival City" styleClass="field-label"/>
+                    <TextField fx:id="arrivalSearch" promptText="Dubai (DXB)" styleClass="input-field" prefWidth="250"/>
+                </VBox>
+                <VBox spacing="5">
+                    <Label text="" /> <!-- Spacer -->
+                    <HBox spacing="10">
+                        <Button text="Search Flights" onAction="#handleSearch" styleClass="primary-button" style="-fx-padding: 10 25 10 25;"/>
+                        <Button text="Clear" onAction="#handleClear" styleClass="secondary-button"/>
+                    </HBox>
+                </VBox>
+            </HBox>
 
-    <!-- The Flight Data Grid -->
-    <TableView fx:id="flightTable" prefHeight="400.0" prefWidth="840.0" VBox.vgrow="ALWAYS" styleClass="table-view">
-      <columns>
-          <TableColumn fx:id="colId" prefWidth="60.0" text="ID" />
-          <TableColumn fx:id="colAirline" prefWidth="150.0" text="Airline" />
-          <TableColumn fx:id="colDeparture" prefWidth="150.0" text="Departure" />
-          <TableColumn fx:id="colArrival" prefWidth="150.0" text="Arrival" />
-          <TableColumn fx:id="colTime" prefWidth="130.0" text="Date &amp; Time" />
-          <TableColumn fx:id="colPrice" prefWidth="100.0" text="Price ($)" />
-          <TableColumn fx:id="colSeats" prefWidth="90.0" text="Seats Left" />
-      </columns>
-    </TableView>
+            <!-- Table -->
+            <TableView fx:id="flightTable" prefHeight="220.0" styleClass="table-view, clean-table" VBox.vgrow="ALWAYS">
+              <columns>
+                  <TableColumn fx:id="colId" prefWidth="60.0" text="ID" />
+                  <TableColumn fx:id="colAirline" prefWidth="200.0" text="Airline" />
+                  <TableColumn fx:id="colDeparture" prefWidth="140.0" text="Departure" />
+                  <TableColumn fx:id="colArrival" prefWidth="140.0" text="Arrival" />
+                  <TableColumn fx:id="colTime" prefWidth="170.0" text="Date &amp; Time" />
+                  <TableColumn fx:id="colPrice" prefWidth="100.0" text="Price ($)" />
+                  <TableColumn fx:id="colSeats" prefWidth="90.0" text="Seats Left" />
+              </columns>
+            </TableView>
 
-    <!-- Booking Action -->
-    <HBox alignment="CENTER_RIGHT">
-        <Button mnemonicParsing="false" onAction="#handleBookFlight" styleClass="success-button" text="Book Selected" />
-    </HBox>
+            <HBox alignment="CENTER_RIGHT">
+                <Button text="Book Selected Flight →" onAction="#handleBookFlight" styleClass="success-button"/>
+            </HBox>
+        </VBox>
 
-</VBox>
+        <!-- Charts Section -->
+        <HBox spacing="25">
+            <!-- Pie Chart Card -->
+            <VBox styleClass="booking-card" HBox.hgrow="ALWAYS" prefWidth="400" spacing="10">
+                <padding><Insets top="25" right="25" bottom="25" left="25"/></padding>
+                <Label text="Popular Destinations" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
+                <PieChart fx:id="destinationPieChart" prefHeight="220" legendSide="RIGHT"/>
+            </VBox>
+
+            <!-- Bar Chart Card -->
+            <VBox styleClass="booking-card" HBox.hgrow="ALWAYS" prefWidth="600" spacing="10">
+                <padding><Insets top="25" right="25" bottom="25" left="25"/></padding>
+                <Label text="Daily Booking Counts" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
+                <BarChart fx:id="bookingBarChart" prefHeight="220" legendVisible="false">
+                    <xAxis><CategoryAxis fx:id="xAxis" /></xAxis>
+                    <yAxis><NumberAxis fx:id="yAxis" /></yAxis>
+                </BarChart>
+            </VBox>
+        </HBox>
+        
+    </VBox>
+</ScrollPane>

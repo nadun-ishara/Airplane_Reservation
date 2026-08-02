@@ -143,7 +143,74 @@
 .table-row-cell:odd {
     -fx-background-color: #f9f9f9;
 }
-.table-row-cell:selected {
+.table-view.clean-table {
+    -fx-border-color: transparent;
+    -fx-background-color: transparent;
+}
+.table-view.clean-table .column-header-background {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent #e0e0e0 transparent;
+}
+.table-view.clean-table .table-cell {
+    -fx-border-color: transparent transparent #f0f0f0 transparent;
+}
+.table-view.clean-table .table-row-cell:odd {
+    -fx-background-color: transparent;
+}
+.table-view.clean-table .table-row-cell:selected {
     -fx-background-color: rgba(0, 80, 158, 0.2);
     -fx-table-cell-border-color: transparent;
+}
+
+/* ------------------------------------- */
+/* SkyLink Pro - Main SPA Shell Styling  */
+/* ------------------------------------- */
+
+.sidebar {
+    -fx-background-color: #081226; /* Dark navy from mockup */
+}
+
+.brand-title {
+    -fx-font-family: "Segoe UI", "Inter", sans-serif;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #FFFFFF;
+}
+
+.brand-subtitle {
+    -fx-font-family: "Segoe UI", "Inter", sans-serif;
+    -fx-font-size: 12px;
+    -fx-text-fill: #6c757d;
+}
+
+.sidebar-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #8a94a6;
+    -fx-font-family: "Segoe UI", "Inter", sans-serif;
+    -fx-font-size: 15px;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+}
+
+.sidebar-btn:hover {
+    -fx-text-fill: #FFFFFF;
+    -fx-background-color: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-btn-active {
+    -fx-background-color: #1CA1F2; /* Bright cyan active state */
+    -fx-text-fill: #FFFFFF;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8px;
+}
+
+.sidebar-btn-logout {
+    -fx-background-color: transparent;
+    -fx-text-fill: #dc3545; /* Red logout */
+    -fx-font-size: 15px;
+    -fx-cursor: hand;
+}
+
+.sidebar-btn-logout:hover {
+    -fx-background-color: rgba(220, 53, 69, 0.1);
 }

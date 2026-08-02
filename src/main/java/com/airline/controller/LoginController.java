@@ -78,12 +78,13 @@ public class LoginController {
     // New method to handle the scene switch cleanly
     private void loadDashboard(String fullName, String role) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Dashboard.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MainLayout.fxml"));
             Parent root = loader.load();
 
             Stage stage = new Stage();
-            stage.setTitle("Airline Reservation - Dashboard (" + role + ")");
+            stage.setTitle("SkyLink Pro - Elite Voyager (" + role + ")");
             stage.setScene(new Scene(root));
+            stage.setMaximized(true);
             stage.show();
 
         } catch (IOException e) {

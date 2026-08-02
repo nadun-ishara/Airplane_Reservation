@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Label?>
+
+<VBox alignment="CENTER" spacing="20" styleClass="dashboard-container" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <Label text="System Settings" styleClass="dashboard-title"/>
+    <Label text="This module will handle user profile updates, password resets, and system configurations." styleClass="subtitle-text"/>
+</VBox>

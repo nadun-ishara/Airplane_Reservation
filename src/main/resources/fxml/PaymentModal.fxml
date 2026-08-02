@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane style="-fx-background-color: rgba(244,247,246,0.95);"
+           stylesheets="@../css/styles.css"
+           xmlns="http://javafx.com/javafx/17"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.airline.controller.PaymentModalController">
+
+    <VBox alignment="TOP_LEFT" maxWidth="520"
+          style="-fx-background-color: #FFFFFF; -fx-background-radius: 16;
+                 -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 30, 0, 0, 10);">
+
+        <!-- Modal Title Bar -->
+        <HBox alignment="CENTER_LEFT"
+              style="-fx-background-color: #F8FAFC; -fx-padding: 15 25;
+                     -fx-background-radius: 16 16 0 0;
+                     -fx-border-color: #E2E8F0; -fx-border-width: 0 0 1 0;">
+            <Label text="💳  Secure Payment Gateway"
+                   style="-fx-text-fill: #475569; -fx-font-size: 13px;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <HBox spacing="6">
+                <Pane style="-fx-background-color: #E2E8F0; -fx-background-radius: 50;
+                              -fx-min-width: 10; -fx-min-height: 10; -fx-max-width: 10; -fx-max-height: 10;"/>
+                <Pane style="-fx-background-color: #E2E8F0; -fx-background-radius: 50;
+                              -fx-min-width: 10; -fx-min-height: 10; -fx-max-width: 10; -fx-max-height: 10;"/>
+                <Pane style="-fx-background-color: #E2E8F0; -fx-background-radius: 50;
+                              -fx-min-width: 10; -fx-min-height: 10; -fx-max-width: 10; -fx-max-height: 10;"/>
+            </HBox>
+        </HBox>
+
+        <!-- Body -->
+        <VBox spacing="18" style="-fx-padding: 30 35 10 35;">
+            <Label text="Secure Payment Gateway"
+                   style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #0A192F;"/>
+            <Label fx:id="lblAmount" text="Total Amount Due: $0.00"
+                   style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #16A34A;"/>
+            <Label fx:id="lblPassengerInfo" text=""
+                   style="-fx-font-size: 12px; -fx-text-fill: #64748B;"/>
+
+            <VBox spacing="6">
+                <Label text="Select Payment Method:"
+                       style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #0A192F;"/>
+                <ComboBox fx:id="comboPaymentMethod" prefWidth="1.7976931348623157E308" styleClass="input-field"/>
+            </VBox>
+
+            <!-- Card Details -->
+            <VBox fx:id="cardDetailsBox" spacing="15">
+                <VBox spacing="6">
+                    <Label text="Name on Card:"
+                           style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #0A192F;"/>
+                    <TextField fx:id="txtNameOnCard" promptText="JOHN DOE" styleClass="input-field"/>
+                </VBox>
+                <VBox spacing="6">
+                    <Label text="Card Number:"
+                           style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #0A192F;"/>
+                    <TextField fx:id="txtCardNumber" promptText="XXXX XXXX XXXX XXXX" styleClass="input-field"/>
+                </VBox>
+                <HBox spacing="15">
+                    <VBox spacing="6" HBox.hgrow="ALWAYS">
+                        <Label text="Expiry Date:"
+                               style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #0A192F;"/>
+                        <TextField fx:id="txtExpiry" promptText="MM/YY" styleClass="input-field"/>
+                    </VBox>
+                    <VBox spacing="6" HBox.hgrow="ALWAYS">
+                        <Label text="CVV:"
+                               style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #0A192F;"/>
+                        <TextField fx:id="txtCvv" promptText="123" styleClass="input-field"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+
+            <!-- PayPal Details (hidden by default) -->
+            <VBox fx:id="paypalDetailsBox" spacing="6" visible="false" managed="false">
+                <Label text="PayPal Email:"
+                       style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #0A192F;"/>
+                <TextField fx:id="txtPaypalEmail" promptText="your@paypal.com" styleClass="input-field"/>
+                <Label text="You will be redirected to PayPal securely after confirmation."
+                       style="-fx-text-fill: #64748B; -fx-font-size: 11px;" wrapText="true"/>
+            </VBox>
+        </VBox>
+
+        <!-- Buttons -->
+        <HBox spacing="15" alignment="CENTER_RIGHT" style="-fx-padding: 20 35 20 35;">
+            <Button text="Cancel" onAction="#handleCancel" prefWidth="130" prefHeight="42"
+                    style="-fx-background-color: #FFFFFF; -fx-border-color: #0A192F;
+                           -fx-border-radius: 8; -fx-background-radius: 8;
+                           -fx-text-fill: #0A192F; -fx-font-weight: bold; -fx-cursor: hand;"/>
+            <Button text="Pay Now" onAction="#handlePayNow" prefWidth="130" prefHeight="42"
+                    style="-fx-background-color: #0A192F; -fx-text-fill: white;
+                           -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;"/>
+        </HBox>
+
+        <!-- Footer -->
+        <HBox alignment="CENTER_LEFT" style="-fx-padding: 12 25;
+              -fx-background-color: #F8FAFC; -fx-background-radius: 0 0 16 16;
+              -fx-border-color: #E2E8F0; -fx-border-width: 1 0 0 0;">
+            <Label text="🔒  SECURE TRANSACTION"
+                   style="-fx-text-fill: #94A3B8; -fx-font-size: 10px; -fx-font-weight: bold;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="🛡 SSL  🛡 PCI  💳 VISA / MC"
+                   style="-fx-text-fill: #94A3B8; -fx-font-size: 10px;"/>
+        </HBox>
+    </VBox>
+</StackPane>

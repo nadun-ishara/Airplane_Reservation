@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Label?>
+
+<VBox alignment="CENTER" spacing="20" styleClass="dashboard-container" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <Label text="Flight Analytics" styleClass="dashboard-title"/>
+    <Label text="This module will display JavaFX Pie and Bar charts for revenue and destination popularity." styleClass="subtitle-text"/>
+</VBox>

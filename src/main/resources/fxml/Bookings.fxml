@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+
+<HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+      style="-fx-background-color: #F4F7F6;"
+      stylesheets="@../css/styles.css"
+      xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.airline.controller.BookingController">
+
+    <!-- LEFT SIDE: SEAT MAP PANEL -->
+    <VBox spacing="15" HBox.hgrow="ALWAYS"
+          style="-fx-background-color: #FFFFFF; -fx-padding: 30 20 30 40;">
+
+        <Label text="Select Your Seat"
+               style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #0A192F;"/>
+        <Label fx:id="lblFlightInfo" text="Flight SL-402 • New York (JFK) to London (LHR)"
+               style="-fx-text-fill: #6c757d; -fx-font-size: 13px;"/>
+
+        <!-- Legend -->
+        <HBox spacing="20" alignment="CENTER_LEFT"
+              style="-fx-padding: 8 20 8 20; -fx-background-color: #F8FAFC;
+                     -fx-background-radius: 20; -fx-max-width: 380;">
+            <HBox spacing="6" alignment="CENTER_LEFT">
+                <Pane style="-fx-background-color: #FFFFFF; -fx-border-color: #CBD5E1;
+                              -fx-border-radius: 4; -fx-background-radius: 4;
+                              -fx-min-width: 16; -fx-min-height: 16; -fx-max-width: 16; -fx-max-height: 16;"/>
+                <Label text="Available" style="-fx-text-fill: #475569; -fx-font-size: 12px;"/>
+            </HBox>
+            <HBox spacing="6" alignment="CENTER_LEFT">
+                <Pane style="-fx-background-color: #1CA1F2; -fx-border-radius: 4;
+                              -fx-background-radius: 4;
+                              -fx-min-width: 16; -fx-min-height: 16; -fx-max-width: 16; -fx-max-height: 16;"/>
+                <Label text="Selected" style="-fx-text-fill: #475569; -fx-font-size: 12px;"/>
+            </HBox>
+            <HBox spacing="6" alignment="CENTER_LEFT">
+                <Pane style="-fx-background-color: #CBD5E1; -fx-border-radius: 4;
+                              -fx-background-radius: 4;
+                              -fx-min-width: 16; -fx-min-height: 16; -fx-max-width: 16; -fx-max-height: 16;"/>
+                <Label text="Occupied" style="-fx-text-fill: #475569; -fx-font-size: 12px;"/>
+            </HBox>
+        </HBox>
+
+        <!-- Seat Map (built dynamically in Java) -->
+        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                    style="-fx-background-color: transparent; -fx-border-color: transparent;
+                           -fx-background: transparent;">
+            <VBox alignment="TOP_CENTER">
+                <padding><Insets top="10" bottom="20"/></padding>
+                <!-- Airplane nose shape container -->
+                <VBox fx:id="seatMapContainer" alignment="TOP_CENTER" spacing="8"
+                      style="-fx-background-color: #F0F4FF; -fx-background-radius: 80 80 20 20;
+                             -fx-border-color: #CBD5E1; -fx-border-radius: 80 80 20 20;
+                             -fx-padding: 30 30 30 30; -fx-max-width: 480;">
+                    <!-- Column headers inserted by controller -->
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </VBox>
+
+    <!-- RIGHT SIDE: PASSENGER FORM -->
+    <VBox prefWidth="370" spacing="0"
+          style="-fx-background-color: #FFFFFF; -fx-border-color: #E2E8F0;
+                 -fx-border-width: 0 0 0 1;">
+
+        <!-- Form Header -->
+        <VBox spacing="4" style="-fx-padding: 28 28 20 28; -fx-border-color: #F0F4FF;
+                                  -fx-border-width: 0 0 1 0;">
+            <Label text="Passenger Details"
+                   style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #0A192F;"/>
+            <Label text="Please confirm your booking information to proceed."
+                   style="-fx-text-fill: #6c757d; -fx-font-size: 12px;" wrapText="true"/>
+        </VBox>
+
+        <!-- Form Fields -->
+        <VBox spacing="18" VBox.vgrow="ALWAYS" style="-fx-padding: 20 28 0 28;">
+
+            <!-- Title + Name -->
+            <VBox spacing="6">
+                <Label text="TITLE &amp; FULL NAME"
+                       style="-fx-font-size: 10px; -fx-text-fill: #94A3B8;
+                              -fx-font-weight: bold; -fx-letter-spacing: 1;"/>
+                <HBox spacing="10">
+                    <ComboBox fx:id="comboTitle" prefWidth="90" styleClass="input-field"/>
+                    <TextField fx:id="txtFullName" HBox.hgrow="ALWAYS"
+                               promptText="Johnathan Doe" styleClass="input-field"/>
+                </HBox>
+            </VBox>
+
+            <!-- Passport -->
+            <VBox spacing="6">
+                <Label text="PASSPORT / NIC NUMBER"
+                       style="-fx-font-size: 10px; -fx-text-fill: #94A3B8; -fx-font-weight: bold;"/>
+                <TextField fx:id="txtPassport" promptText="e.g., L8390281" styleClass="input-field"/>
+                <Label fx:id="lblPassportError" text=""
+                       style="-fx-text-fill: #EF4444; -fx-font-size: 11px;"/>
+            </VBox>
+
+            <!-- Email -->
+            <VBox spacing="6">
+                <Label text="CONTACT EMAIL"
+                       style="-fx-font-size: 10px; -fx-text-fill: #94A3B8; -fx-font-weight: bold;"/>
+                <TextField fx:id="txtEmail" promptText="john.doe@skypro.com" styleClass="input-field"/>
+                <Label fx:id="lblEmailError" text=""
+                       style="-fx-text-fill: #EF4444; -fx-font-size: 11px;"/>
+            </VBox>
+
+            <!-- Nationality -->
+            <VBox spacing="6">
+                <Label text="NATIONALITY"
+                       style="-fx-font-size: 10px; -fx-text-fill: #94A3B8; -fx-font-weight: bold;"/>
+                <TextField fx:id="txtNationality" promptText="e.g., Sri Lankan" styleClass="input-field"/>
+            </VBox>
+
+        </VBox>
+
+        <!-- Spacer -->
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <!-- Checkout Footer -->
+        <VBox spacing="15" style="-fx-padding: 20 28 28 28; -fx-border-color: #E2E8F0;
+                                   -fx-border-width: 1 0 0 0;">
+            <HBox>
+                <VBox spacing="3">
+                    <Label text="SELECTED SEAT"
+                           style="-fx-font-size: 10px; -fx-text-fill: #94A3B8; -fx-font-weight: bold;"/>
+                    <Label fx:id="lblSelectedSeat" text="None Selected"
+                           style="-fx-font-size: 14px; -fx-text-fill: #0A192F; -fx-font-weight: bold;"/>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <VBox spacing="3" alignment="CENTER_RIGHT">
+                    <Label text="TOTAL PRICE"
+                           style="-fx-font-size: 10px; -fx-text-fill: #94A3B8; -fx-font-weight: bold;"/>
+                    <Label fx:id="lblTotalPrice" text="$0.00"
+                           style="-fx-font-size: 26px; -fx-text-fill: #0A192F; -fx-font-weight: bold;"/>
+                </VBox>
+            </HBox>
+
+            <Button fx:id="btnProceed" text="PROCEED TO PAYMENT  →"
+                    onAction="#handleProceed"
+                    prefWidth="1.7976931348623157E308" prefHeight="50"
+                    style="-fx-background-color: #94A3B8; -fx-text-fill: white;
+                           -fx-font-weight: bold; -fx-background-radius: 8;
+                           -fx-font-size: 13px; -fx-cursor: hand;"/>
+        </VBox>
+
+    </VBox>
+</HBox>

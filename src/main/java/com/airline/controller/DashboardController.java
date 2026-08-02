@@ -31,6 +31,9 @@ public class DashboardController {
     @FXML private TableColumn<Flight, String> colTime;
     @FXML private TableColumn<Flight, Double> colPrice;
     @FXML private TableColumn<Flight, Integer> colSeats;
+    
+    @FXML private javafx.scene.chart.PieChart destinationPieChart;
+    @FXML private javafx.scene.chart.BarChart<String, Number> bookingBarChart;
 
     // This list holds the data that gets passed to the table
     private ObservableList<Flight> flightList = FXCollections.observableArrayList();
@@ -38,7 +41,6 @@ public class DashboardController {
     @FXML
     public void initialize() {
         // 1. Link the table columns to the getter methods in our Flight model
-        // e.g. "flightId" means JavaFX will look for getFlightId()
         colId.setCellValueFactory(new PropertyValueFactory<>("flightId"));
         colAirline.setCellValueFactory(new PropertyValueFactory<>("airline"));
         colDeparture.setCellValueFactory(new PropertyValueFactory<>("departureCity"));
@@ -49,6 +51,28 @@ public class DashboardController {
 
         // 2. Fetch data from the database immediately when the window opens
         loadFlightsFromDatabase("", "");
+        
+        // 3. Setup the Analytics Charts
+        setupCharts();
+    }
+    
+    private void setupCharts() {
+        // Pie Chart Data
+        ObservableList<javafx.scene.chart.PieChart.Data> pieChartData = FXCollections.observableArrayList(
+                new javafx.scene.chart.PieChart.Data("Dubai (45%)", 45),
+                new javafx.scene.chart.PieChart.Data("London (30%)", 30),
+                new javafx.scene.chart.PieChart.Data("Singapore (15%)", 15),
+                new javafx.scene.chart.PieChart.Data("Other (10%)", 10));
+        destinationPieChart.setData(pieChartData);
+
+        // Bar Chart Data
+        javafx.scene.chart.XYChart.Series<String, Number> series = new javafx.scene.chart.XYChart.Series<>();
+        series.getData().add(new javafx.scene.chart.XYChart.Data<>("Mon", 120));
+        series.getData().add(new javafx.scene.chart.XYChart.Data<>("Tue", 180));
+        series.getData().add(new javafx.scene.chart.XYChart.Data<>("Wed", 90));
+        series.getData().add(new javafx.scene.chart.XYChart.Data<>("Thu", 210));
+        series.getData().add(new javafx.scene.chart.XYChart.Data<>("Fri", 160));
+        bookingBarChart.getData().add(series);
     }
 
     @FXML
@@ -119,7 +143,7 @@ public class DashboardController {
 
         if (selectedFlight == null) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Warning");
+            alert.setTitle("No Flight Selected");
             alert.setHeaderText(null);
             alert.setContentText("Please select a flight from the table first!");
             alert.show();
@@ -127,20 +151,17 @@ public class DashboardController {
         }
 
         try {
-            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/fxml/Booking.fxml"));
-            javafx.scene.Parent root = loader.load();
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                    getClass().getResource("/fxml/Bookings.fxml"));
+            javafx.scene.Node view = loader.load();
 
-            // Pass the selected flight to the Booking Controller
-            BookingController bookingController = loader.getController();
-            bookingController.setFlightData(selectedFlight);
+            // Pass the selected flight into the BookingController
+            BookingController bookingCtrl = loader.getController();
+            bookingCtrl.setFlight(selectedFlight);
 
-            javafx.stage.Stage stage = new javafx.stage.Stage();
-            stage.setTitle("Passenger Details");
-            stage.setScene(new javafx.scene.Scene(root));
-            stage.showAndWait();
-
-            // Refresh the table after booking because seats have decreased!
-            handleClear(null); 
+            // Swap the center view in the SPA shell and highlight the sidebar tab
+            MainController.getInstance().setView(view);
+            MainController.getInstance().setActiveTabExternal("bookings");
 
         } catch (java.io.IOException e) {
             e.printStackTrace();
