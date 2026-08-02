@@ -1,0 +1,11 @@
+# Compiled class file
+*.class
+
+# Maven build folder
+target/
+
+# Environment variables (DO NOT PUSH PASSWORDS)
+.env
+
+# VS Code specific settings
+.vscode/
