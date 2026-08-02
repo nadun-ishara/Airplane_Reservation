@@ -87,9 +87,15 @@ public class LoginController {
             stage.setMaximized(true);
             stage.show();
 
-        } catch (IOException e) {
+        } catch (Exception e) {
+            // Print the FULL cause chain - this is critical for debugging FXML load errors
             e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "System Error", "Could not load the Dashboard UI.");
+            Throwable cause = e;
+            while (cause.getCause() != null) {
+                cause = cause.getCause();
+                System.err.println("Caused by: " + cause.getMessage());
+            }
+            showAlert(Alert.AlertType.ERROR, "System Error", "Could not load the Dashboard UI.\n\nCause: " + cause.getMessage());
         }
     }
 

@@ -57,6 +57,10 @@ public class DashboardController {
     }
     
     private void setupCharts() {
+        // Always clear first to avoid duplicates on re-load
+        destinationPieChart.getData().clear();
+        bookingBarChart.getData().clear();
+
         // Pie Chart Data
         ObservableList<javafx.scene.chart.PieChart.Data> pieChartData = FXCollections.observableArrayList(
                 new javafx.scene.chart.PieChart.Data("Dubai (45%)", 45),
