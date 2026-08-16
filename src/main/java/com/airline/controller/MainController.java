@@ -47,7 +47,7 @@ public class MainController {
     @FXML
     public void showBookings() {
         setActiveTab(btnBookings);
-        loadView("/fxml/Bookings.fxml");
+        loadView("/fxml/MyBookings.fxml");
     }
 
     @FXML

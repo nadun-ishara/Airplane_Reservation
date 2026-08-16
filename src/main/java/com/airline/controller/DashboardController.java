@@ -32,8 +32,6 @@ public class DashboardController {
     @FXML private TableColumn<Flight, Double> colPrice;
     @FXML private TableColumn<Flight, Integer> colSeats;
     
-    @FXML private javafx.scene.chart.PieChart destinationPieChart;
-    @FXML private javafx.scene.chart.BarChart<String, Number> bookingBarChart;
 
     // This list holds the data that gets passed to the table
     private ObservableList<Flight> flightList = FXCollections.observableArrayList();
@@ -51,33 +49,8 @@ public class DashboardController {
 
         // 2. Fetch data from the database immediately when the window opens
         loadFlightsFromDatabase("", "");
-        
-        // 3. Setup the Analytics Charts
-        setupCharts();
     }
     
-    private void setupCharts() {
-        // Always clear first to avoid duplicates on re-load
-        destinationPieChart.getData().clear();
-        bookingBarChart.getData().clear();
-
-        // Pie Chart Data
-        ObservableList<javafx.scene.chart.PieChart.Data> pieChartData = FXCollections.observableArrayList(
-                new javafx.scene.chart.PieChart.Data("Dubai (45%)", 45),
-                new javafx.scene.chart.PieChart.Data("London (30%)", 30),
-                new javafx.scene.chart.PieChart.Data("Singapore (15%)", 15),
-                new javafx.scene.chart.PieChart.Data("Other (10%)", 10));
-        destinationPieChart.setData(pieChartData);
-
-        // Bar Chart Data
-        javafx.scene.chart.XYChart.Series<String, Number> series = new javafx.scene.chart.XYChart.Series<>();
-        series.getData().add(new javafx.scene.chart.XYChart.Data<>("Mon", 120));
-        series.getData().add(new javafx.scene.chart.XYChart.Data<>("Tue", 180));
-        series.getData().add(new javafx.scene.chart.XYChart.Data<>("Wed", 90));
-        series.getData().add(new javafx.scene.chart.XYChart.Data<>("Thu", 210));
-        series.getData().add(new javafx.scene.chart.XYChart.Data<>("Fri", 160));
-        bookingBarChart.getData().add(series);
-    }
 
     @FXML
     void handleSearch(ActionEvent event) {

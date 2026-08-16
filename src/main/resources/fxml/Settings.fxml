@@ -1,8 +1,119 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.control.Label?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
-<VBox alignment="CENTER" spacing="20" styleClass="dashboard-container" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
-    <Label text="System Settings" styleClass="dashboard-title"/>
-    <Label text="This module will handle user profile updates, password resets, and system configurations." styleClass="subtitle-text"/>
-</VBox>
+<ScrollPane fitToWidth="true"
+            style="-fx-background-color: transparent; -fx-background: #F4F7F6;"
+            stylesheets="@../css/styles.css"
+            xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.airline.controller.SettingsController">
+
+    <VBox spacing="30.0" style="-fx-padding: 30; -fx-max-width: 680;">
+
+        <!-- Page Header -->
+        <HBox alignment="CENTER_LEFT">
+            <VBox spacing="5">
+                <Label text="Account Settings"
+                       style="-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
+                <Label text="Update your profile information and change your password."
+                       style="-fx-text-fill: #6c757d;"/>
+            </VBox>
+        </HBox>
+
+        <!-- Profile Section Card -->
+        <VBox styleClass="booking-card" spacing="20">
+            <padding><Insets top="28" right="28" bottom="28" left="28"/></padding>
+
+            <!-- Section Title -->
+            <Label text="&#128100; Profile Information"
+                   style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
+
+            <!-- Username Field -->
+            <VBox spacing="6">
+                <Label text="USERNAME"
+                       style="-fx-font-size: 10px; -fx-font-weight: bold;
+                              -fx-text-fill: #94A3B8; -fx-letter-spacing: 1;"/>
+                <TextField fx:id="txtUsername"
+                           promptText="e.g., admin_skylink"
+                           styleClass="input-field"/>
+            </VBox>
+
+            <!-- Email Field -->
+            <VBox spacing="6">
+                <Label text="EMAIL ADDRESS"
+                       style="-fx-font-size: 10px; -fx-font-weight: bold;
+                              -fx-text-fill: #94A3B8; -fx-letter-spacing: 1;"/>
+                <TextField fx:id="txtEmail"
+                           promptText="e.g., admin@skylink.com"
+                           styleClass="input-field"/>
+                <Label fx:id="lblEmailError"
+                       text=""
+                       style="-fx-text-fill: #EF4444; -fx-font-size: 11px;"/>
+            </VBox>
+        </VBox>
+
+        <!-- Security Section Card -->
+        <VBox styleClass="booking-card" spacing="20">
+            <padding><Insets top="28" right="28" bottom="28" left="28"/></padding>
+
+            <!-- Section Title -->
+            <Label text="&#128274; Change Password"
+                   style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
+
+            <!-- Current Password -->
+            <VBox spacing="6">
+                <Label text="CURRENT PASSWORD"
+                       style="-fx-font-size: 10px; -fx-font-weight: bold;
+                              -fx-text-fill: #94A3B8; -fx-letter-spacing: 1;"/>
+                <PasswordField fx:id="txtCurrentPassword"
+                               promptText="Enter your current password"
+                               styleClass="input-field"/>
+            </VBox>
+
+            <!-- New Password -->
+            <VBox spacing="6">
+                <Label text="NEW PASSWORD"
+                       style="-fx-font-size: 10px; -fx-font-weight: bold;
+                              -fx-text-fill: #94A3B8; -fx-letter-spacing: 1;"/>
+                <PasswordField fx:id="txtNewPassword"
+                               promptText="Minimum 8 characters"
+                               styleClass="input-field"/>
+                <Label fx:id="lblPasswordError"
+                       text=""
+                       style="-fx-text-fill: #EF4444; -fx-font-size: 11px;"/>
+            </VBox>
+
+            <!-- Confirm Password -->
+            <VBox spacing="6">
+                <Label text="CONFIRM NEW PASSWORD"
+                       style="-fx-font-size: 10px; -fx-font-weight: bold;
+                              -fx-text-fill: #94A3B8; -fx-letter-spacing: 1;"/>
+                <PasswordField fx:id="txtConfirmPassword"
+                               promptText="Re-enter new password"
+                               styleClass="input-field"/>
+            </VBox>
+        </VBox>
+
+        <!-- Status Message -->
+        <Label fx:id="lblStatus"
+               text=""
+               wrapText="true"
+               style="-fx-font-size: 13px; -fx-font-weight: bold;"/>
+
+        <!-- Save Button -->
+        <HBox alignment="CENTER_LEFT" spacing="15">
+            <Button fx:id="btnSave"
+                    text="&#10003; Save Changes"
+                    onAction="#handleSaveChanges"
+                    styleClass="primary-button"
+                    style="-fx-padding: 12 35 12 35; -fx-font-size: 14px;"/>
+            <Button text="Discard"
+                    onAction="#handleDiscard"
+                    styleClass="secondary-button"
+                    style="-fx-padding: 12 25 12 25; -fx-font-size: 14px;"/>
+        </HBox>
+
+    </VBox>
+</ScrollPane>

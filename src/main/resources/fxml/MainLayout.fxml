@@ -32,7 +32,7 @@
                 <Button fx:id="btnDashboard" alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#showDashboard" prefHeight="45.0" prefWidth="250.0" styleClass="sidebar-btn, sidebar-btn-active" text="Dashboard">
                     <padding><Insets left="30.0" /></padding>
                 </Button>
-                <Button fx:id="btnBookings" alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#showBookings" prefHeight="45.0" prefWidth="250.0" styleClass="sidebar-btn" text="My Bookings">
+                <Button fx:id="btnBookings" alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#showBookings" prefHeight="45.0" prefWidth="250.0" styleClass="sidebar-btn" text="Bookings">
                     <padding><Insets left="30.0" /></padding>
                 </Button>
                 <Button fx:id="btnAnalytics" alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#showAnalytics" prefHeight="45.0" prefWidth="250.0" styleClass="sidebar-btn" text="Flight Analytics">
