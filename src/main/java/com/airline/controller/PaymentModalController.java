@@ -10,8 +10,29 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
 import java.io.IOException;
+import java.io.FileOutputStream;
 import java.sql.*;
 import java.util.Random;
+
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+import javafx.stage.Modality;
+import javafx.stage.StageStyle;
+import javafx.geometry.Pos;
+import javafx.geometry.Insets;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.stage.FileChooser;
+import java.io.File;
+
+import com.itextpdf.text.Document;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfWriter;
+import com.itextpdf.text.FontFactory;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfPCell;
 
 public class PaymentModalController {
 
@@ -127,19 +148,125 @@ public class PaymentModalController {
             conn.commit();
             conn.setAutoCommit(true);
 
-            showAlert(Alert.AlertType.INFORMATION, "Payment Successful! \u2708",
-                    "Booking confirmed via " + paymentMethod + "!\n\n"
-                    + "Passenger : " + passengerName + "\n"
-                    + "Seat      : " + seatNumber + "\n"
-                    + "PNR       : " + pnr + "\n\n"
-                    + "Please save your PNR for Check-in.");
+            // ----------------------------------------------------
+            // PREMIUM CUSTOM SUCCESS DIALOG (CUSTOM STAGE)
+            // ----------------------------------------------------
+            Stage successStage = new Stage();
+            successStage.initModality(Modality.APPLICATION_MODAL);
+            successStage.initStyle(StageStyle.UNDECORATED);
 
-            MainController.getInstance().showDashboard();
+            VBox root = new VBox(20);
+            root.setStyle("-fx-background-color: #FFFFFF; -fx-padding: 30; -fx-border-color: #E2E8F0; -fx-border-width: 2; -fx-border-radius: 12; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 20, 0, 0, 10);");
+            root.setAlignment(Pos.CENTER);
+
+            Label icon = new Label("✔");
+            icon.setStyle("-fx-font-size: 60px; -fx-text-fill: #10B981;");
+
+            Label title = new Label("Payment Successful!");
+            title.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #0F172A; -fx-font-family: 'Segoe UI', sans-serif;");
+
+            Label subTitle = new Label("Your booking has been confirmed via " + paymentMethod);
+            subTitle.setStyle("-fx-font-size: 14px; -fx-text-fill: #64748B; -fx-font-family: 'Segoe UI', sans-serif;");
+
+            // Receipt Box
+            VBox receiptBox = new VBox(10);
+            receiptBox.setStyle("-fx-background-color: #F8FAFC; -fx-padding: 20; -fx-border-color: #E2E8F0; -fx-border-radius: 8; -fx-background-radius: 8; -fx-min-width: 300;");
+            
+            Label lblPass = new Label("Passenger: " + passengerName);
+            lblPass.setStyle("-fx-font-size: 15px; -fx-text-fill: #334155; -fx-font-family: 'Segoe UI', sans-serif;");
+            
+            Label lblSeatDetails = new Label("Seat: " + seatNumber);
+            lblSeatDetails.setStyle("-fx-font-size: 15px; -fx-text-fill: #334155; -fx-font-family: 'Segoe UI', sans-serif;");
+            
+            Label lblPnr = new Label("PNR: " + pnr);
+            lblPnr.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #0F172A; -fx-padding: 10 0 0 0; -fx-font-family: 'Segoe UI', sans-serif;");
+            
+            receiptBox.getChildren().addAll(lblPass, lblSeatDetails, new Separator(), lblPnr);
+
+            // Action Buttons
+            HBox buttonBox = new HBox(15);
+            buttonBox.setAlignment(Pos.CENTER);
+            
+            Button btnPdf = new Button("Download PDF");
+            btnPdf.setStyle("-fx-background-color: #3B82F6; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 10 20 10 20; -fx-background-radius: 6; -fx-cursor: hand;");
+            btnPdf.setOnAction(e -> generatePdf(pnr, passengerName, seatNumber, paymentMethod, successStage));
+
+            Button btnClose = new Button("Return to Dashboard");
+            btnClose.setStyle("-fx-background-color: #E2E8F0; -fx-text-fill: #0F172A; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 10 20 10 20; -fx-background-radius: 6; -fx-cursor: hand;");
+            btnClose.setOnAction(e -> {
+                successStage.close();
+                MainController.getInstance().showDashboard();
+            });
+
+            buttonBox.getChildren().addAll(btnPdf, btnClose);
+
+            root.getChildren().addAll(icon, title, subTitle, receiptBox, buttonBox);
+            
+            Scene scene = new Scene(root);
+            scene.setFill(null);
+            successStage.setScene(scene);
+            successStage.showAndWait();
 
         } catch (SQLException e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Database Error",
                     "Could not save booking:\n" + e.getMessage());
+        }
+    }
+
+    private void generatePdf(String pnr, String passengerName, String seatNumber, String paymentMethod, Stage owner) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Boarding Pass");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+        fileChooser.setInitialFileName("BoardingPass_" + pnr + ".pdf");
+        
+        File file = fileChooser.showSaveDialog(owner);
+        if (file != null) {
+            try {
+                Document document = new Document();
+                PdfWriter.getInstance(document, new FileOutputStream(file));
+                document.open();
+                
+                com.itextpdf.text.Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 24, com.itextpdf.text.BaseColor.BLACK);
+                com.itextpdf.text.Font subFont = FontFactory.getFont(FontFactory.HELVETICA, 14, com.itextpdf.text.BaseColor.DARK_GRAY);
+                com.itextpdf.text.Font boldFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, com.itextpdf.text.BaseColor.BLACK);
+                
+                Paragraph title = new Paragraph("SkyLink Pro - Boarding Pass", titleFont);
+                title.setAlignment(Element.ALIGN_CENTER);
+                document.add(title);
+                
+                document.add(new Paragraph("\n"));
+                
+                PdfPTable table = new PdfPTable(2);
+                table.setWidthPercentage(100);
+                table.setSpacingBefore(10f);
+                
+                table.addCell(new PdfPCell(new Paragraph("Passenger Name:", subFont)));
+                table.addCell(new PdfPCell(new Paragraph(passengerName, boldFont)));
+                
+                table.addCell(new PdfPCell(new Paragraph("Flight Airline:", subFont)));
+                table.addCell(new PdfPCell(new Paragraph(flight != null ? flight.getAirline() : "N/A", boldFont)));
+                
+                table.addCell(new PdfPCell(new Paragraph("Seat Number:", subFont)));
+                table.addCell(new PdfPCell(new Paragraph(seatNumber, boldFont)));
+                
+                table.addCell(new PdfPCell(new Paragraph("Payment Status:", subFont)));
+                table.addCell(new PdfPCell(new Paragraph("Paid via " + paymentMethod, boldFont)));
+                
+                document.add(table);
+                
+                document.add(new Paragraph("\n"));
+                Paragraph pnrPara = new Paragraph("PNR: " + pnr, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 28, com.itextpdf.text.BaseColor.BLUE));
+                pnrPara.setAlignment(Element.ALIGN_CENTER);
+                document.add(pnrPara);
+                
+                document.close();
+                
+                showAlert(Alert.AlertType.INFORMATION, "PDF Saved", "Your boarding pass has been saved to:\n" + file.getAbsolutePath());
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                showAlert(Alert.AlertType.ERROR, "PDF Error", "Could not generate PDF:\n" + ex.getMessage());
+            }
         }
     }
 
