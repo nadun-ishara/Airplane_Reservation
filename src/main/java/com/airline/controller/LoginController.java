@@ -7,7 +7,12 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -43,19 +48,23 @@ public class LoginController {
         String query = "SELECT full_name, role FROM users WHERE email = ? AND password = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(query)) {
-            
+                PreparedStatement pstmt = conn.prepareStatement(query)) {
+
             pstmt.setString(1, email);
             pstmt.setString(2, password);
-            
+
             ResultSet rs = pstmt.executeQuery();
-            
+
             if (rs.next()) {
                 String fullName = rs.getString("full_name");
                 String role = rs.getString("role");
-                
-                showAlert(Alert.AlertType.INFORMATION, "Login Successful!", "Welcome back, " + fullName + " (" + role + ")!");
-                // TODO: Load dashboard scene here based on role
+
+                // 1. Close the Login Window using the loginButton's scene reference
+                loginButton.getScene().getWindow().hide();
+
+                // 2. Load the Dashboard and open it
+                loadDashboard(fullName, role);
+
             } else {
                 showAlert(Alert.AlertType.ERROR, "Login Failed", "Incorrect email or password");
             }
@@ -65,7 +74,31 @@ public class LoginController {
             showAlert(Alert.AlertType.ERROR, "Database Error", "Could not connect to the database. Is MySQL running?");
         }
     }
-    
+
+    // New method to handle the scene switch cleanly
+    private void loadDashboard(String fullName, String role) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MainLayout.fxml"));
+            Parent root = loader.load();
+
+            Stage stage = new Stage();
+            stage.setTitle("SkyLink Pro - Elite Voyager (" + role + ")");
+            stage.setScene(new Scene(root));
+            stage.setMaximized(true);
+            stage.show();
+
+        } catch (Exception e) {
+            // Print the FULL cause chain - this is critical for debugging FXML load errors
+            e.printStackTrace();
+            Throwable cause = e;
+            while (cause.getCause() != null) {
+                cause = cause.getCause();
+                System.err.println("Caused by: " + cause.getMessage());
+            }
+            showAlert(Alert.AlertType.ERROR, "System Error", "Could not load the Dashboard UI.\n\nCause: " + cause.getMessage());
+        }
+    }
+
     private void showAlert(Alert.AlertType alertType, String title, String message) {
         Alert alert = new Alert(alertType);
         alert.setTitle(title);

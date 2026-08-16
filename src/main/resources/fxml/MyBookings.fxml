@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane fitToWidth="true"
+            style="-fx-background-color: transparent; -fx-background: #F4F7F6;"
+            stylesheets="@../css/styles.css"
+            xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.airline.controller.MyBookingsController">
+
+    <VBox spacing="25.0" style="-fx-padding: 30;">
+
+        <!-- Page Header -->
+        <HBox alignment="CENTER_LEFT">
+            <VBox spacing="5">
+                <Label text="My Bookings"
+                       style="-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
+                <Label text="View and manage all your active and past reservations."
+                       style="-fx-text-fill: #6c757d;"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="&#8635; Refresh"
+                    onAction="#handleRefresh"
+                    styleClass="secondary-button"
+                    style="-fx-background-color: #E2E8F0; -fx-border-color: transparent;"/>
+        </HBox>
+
+        <!-- Bookings Table Card -->
+        <VBox styleClass="booking-card" spacing="20" VBox.vgrow="ALWAYS">
+            <padding><Insets top="25" right="25" bottom="25" left="25"/></padding>
+
+            <HBox alignment="CENTER_LEFT" spacing="20">
+                <Label text="Reservation History"
+                       style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <!-- Quick filter -->
+                <ComboBox fx:id="filterCombo"
+                          promptText="Filter by Status"
+                          prefWidth="160"
+                          onAction="#handleFilter"
+                          styleClass="input-field"/>
+            </HBox>
+
+            <TableView fx:id="bookingsTable"
+                       prefHeight="380.0"
+                       styleClass="table-view, clean-table"
+                       VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="colBookingId"  prefWidth="80.0"  text="Booking #"/>
+                    <TableColumn fx:id="colFlight"     prefWidth="90.0"  text="Flight ID"/>
+                    <TableColumn fx:id="colAirline"    prefWidth="160.0" text="Airline"/>
+                    <TableColumn fx:id="colRoute"      prefWidth="200.0" text="Route"/>
+                    <TableColumn fx:id="colPassenger"  prefWidth="160.0" text="Passenger"/>
+                    <TableColumn fx:id="colSeat"       prefWidth="80.0"  text="Seat"/>
+                    <TableColumn fx:id="colStatus"     prefWidth="100.0" text="Status"/>
+                    <TableColumn fx:id="colPrice"      prefWidth="90.0"  text="Price ($)"/>
+                </columns>
+                <placeholder>
+                    <Label text="No bookings found. Book a flight from the Dashboard."
+                           style="-fx-text-fill: #6c757d; -fx-font-size: 14px;"/>
+                </placeholder>
+            </TableView>
+
+            <!-- Action Row -->
+            <HBox alignment="CENTER_RIGHT" spacing="10">
+                <Button text="Cancel Booking"
+                        onAction="#handleCancelBooking"
+                        styleClass="secondary-button"
+                        style="-fx-text-fill: #dc3545; -fx-border-color: #dc3545;"/>
+            </HBox>
+        </VBox>
+
+        <!-- Summary Stats -->
+        <HBox spacing="20">
+            <VBox styleClass="booking-card" HBox.hgrow="ALWAYS" alignment="CENTER" spacing="6">
+                <padding><Insets top="18" right="20" bottom="18" left="20"/></padding>
+                <Label text="Total Bookings"
+                       style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
+                <Label fx:id="lblTotalCount"
+                       text="0"
+                       style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
+            </VBox>
+            <VBox styleClass="booking-card" HBox.hgrow="ALWAYS" alignment="CENTER" spacing="6">
+                <padding><Insets top="18" right="20" bottom="18" left="20"/></padding>
+                <Label text="Paid"
+                       style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
+                <Label fx:id="lblConfirmedCount"
+                       text="0"
+                       style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #28a745;"/>
+            </VBox>
+            <VBox styleClass="booking-card" HBox.hgrow="ALWAYS" alignment="CENTER" spacing="6">
+                <padding><Insets top="18" right="20" bottom="18" left="20"/></padding>
+                <Label text="Total Spent ($)"
+                       style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
+                <Label fx:id="lblTotalSpent"
+                       text="0.00"
+                       style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1CA1F2;"/>
+            </VBox>
+        </HBox>
+
+    </VBox>
+</ScrollPane>

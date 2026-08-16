@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane prefHeight="768.0" prefWidth="1200.0" 
+            stylesheets="@../css/styles.css" 
+            xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="com.airline.controller.MainController">
+            
+    <!-- LEFT SIDEBAR -->
+    <left>
+        <VBox prefWidth="250.0" spacing="15.0" styleClass="sidebar">
+            <padding>
+                <Insets bottom="20.0" top="30.0" />
+            </padding>
+            <VBox spacing="5.0">
+                <padding>
+                    <Insets bottom="30.0" left="25.0" />
+                </padding>
+                <Label styleClass="brand-title" text="SkyLink Pro" />
+                <Label styleClass="brand-subtitle" text="Elite Voyager" />
+            </VBox>
+            
+            <VBox spacing="5.0">
+                <Button fx:id="btnDashboard" alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#showDashboard" prefHeight="45.0" prefWidth="250.0" styleClass="sidebar-btn, sidebar-btn-active" text="Dashboard">
+                    <padding><Insets left="30.0" /></padding>
+                </Button>
+                <Button fx:id="btnBookings" alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#showBookings" prefHeight="45.0" prefWidth="250.0" styleClass="sidebar-btn" text="Bookings">
+                    <padding><Insets left="30.0" /></padding>
+                </Button>
+                <Button fx:id="btnAnalytics" alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#showAnalytics" prefHeight="45.0" prefWidth="250.0" styleClass="sidebar-btn" text="Flight Analytics">
+                    <padding><Insets left="30.0" /></padding>
+                </Button>
+                <Button fx:id="btnSettings" alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#showSettings" prefHeight="45.0" prefWidth="250.0" styleClass="sidebar-btn" text="Settings">
+                    <padding><Insets left="30.0" /></padding>
+                </Button>
+            </VBox>
+            
+            <!-- Spacer to push bottom items down -->
+            <VBox VBox.vgrow="ALWAYS" />
+            
+            <VBox spacing="5.0">
+                <Button alignment="BASELINE_LEFT" mnemonicParsing="false" prefHeight="45.0" prefWidth="250.0" styleClass="sidebar-btn" text="Support">
+                    <padding><Insets left="30.0" /></padding>
+                </Button>
+                <Button alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#handleLogout" prefHeight="45.0" prefWidth="250.0" styleClass="sidebar-btn-logout" text="Log Out">
+                    <padding><Insets left="30.0" /></padding>
+                </Button>
+            </VBox>
+        </VBox>
+    </left>
+    
+    <!-- CENTER CONTENT AREA WITH TOP NAVBAR -->
+    <center>
+        <VBox>
+            <!-- TOP NAVIGATION BAR -->
+            <HBox alignment="CENTER_LEFT" prefHeight="70.0" spacing="20.0" style="-fx-background-color: #FFFFFF; -fx-padding: 0 30 0 30; -fx-border-color: #E2E8F0; -fx-border-width: 0 0 1 0;">
+                
+                <Label style="-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #003366;" text="✈ Reservation Control" />
+                
+                <!-- Spacer -->
+                <Region HBox.hgrow="ALWAYS" />
+                
+                <!-- Global Tabs -->
+                <HBox alignment="CENTER" spacing="30.0">
+                    <Label style="-fx-text-fill: #6c757d; -fx-font-size: 14px; -fx-cursor: hand;" text="Global Fleet" />
+                    <Label style="-fx-text-fill: #6c757d; -fx-font-size: 14px; -fx-cursor: hand;" text="Check-in" />
+                    <Label style="-fx-text-fill: #003366; -fx-font-weight: bold; -fx-font-size: 14px; -fx-cursor: hand; -fx-border-color: #1CA1F2; -fx-border-width: 0 0 2 0; -fx-padding: 0 0 5 0;" text="Flight Status" />
+                </HBox>
+                
+                <!-- Spacer -->
+                <Region HBox.hgrow="ALWAYS" />
+                
+                <!-- Right Side Icons & Profile -->
+                <HBox alignment="CENTER" spacing="20.0">
+                    <Label style="-fx-font-size: 18px; -fx-cursor: hand;" text="🔔" />
+                    <Label style="-fx-font-size: 18px; -fx-cursor: hand;" text="❓" />
+                    <VBox alignment="CENTER_RIGHT" spacing="2">
+                        <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #003366;" text="Admin User" />
+                        <Label style="-fx-font-size: 10px; -fx-text-fill: #6c757d;" text="PREMIUM MEMBER" />
+                    </VBox>
+                    <Label style="-fx-font-size: 24px;" text="👤" /> <!-- Profile placeholder -->
+                </HBox>
+                
+            </HBox>
+            
+            <!-- DYNAMIC PAGE CONTENT -->
+            <StackPane fx:id="contentArea" style="-fx-background-color: #F4F7F6;" VBox.vgrow="ALWAYS" />
+        </VBox>
+    </center>
+</BorderPane>

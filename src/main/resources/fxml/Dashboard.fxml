@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane fitToWidth="true"
+            style="-fx-background-color: transparent; -fx-background: #F4F7F6;"
+            stylesheets="@../css/styles.css"
+            xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.airline.controller.DashboardController">
+
+    <VBox spacing="25.0" style="-fx-padding: 30;">
+
+        <!-- Page Header -->
+        <HBox alignment="CENTER_LEFT">
+            <VBox spacing="5">
+                <Label text="Reservation Dashboard"
+                       style="-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
+                <Label text="Monitoring real-time traffic for CMB to DXB routes."
+                       style="-fx-text-fill: #6c757d;"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="&#8635; Refresh Data"
+                    onAction="#handleClear"
+                    styleClass="secondary-button"
+                    style="-fx-background-color: #E2E8F0; -fx-border-color: transparent;"/>
+        </HBox>
+
+        <!-- Flight Search &amp; Table Card -->
+        <VBox styleClass="booking-card" spacing="20" VBox.vgrow="ALWAYS">
+            <padding><Insets top="25" right="25" bottom="25" left="25"/></padding>
+
+            <Label text="Flight Search &amp; Reservations"
+                   style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
+
+            <!-- Search Bar Row -->
+            <HBox spacing="15" alignment="CENTER_LEFT">
+                <VBox spacing="5">
+                    <Label text="Departure City" styleClass="field-label"/>
+                    <TextField fx:id="departureSearch"
+                               promptText="Colombo (CMB)"
+                               styleClass="input-field"
+                               prefWidth="250"/>
+                </VBox>
+                <Label text="&#8644;"
+                       style="-fx-font-size: 20px; -fx-text-fill: #1CA1F2; -fx-padding: 20 0 0 0;"/>
+                <VBox spacing="5">
+                    <Label text="Arrival City" styleClass="field-label"/>
+                    <TextField fx:id="arrivalSearch"
+                               promptText="Dubai (DXB)"
+                               styleClass="input-field"
+                               prefWidth="250"/>
+                </VBox>
+                <VBox spacing="5">
+                    <Label text="" />
+                    <HBox spacing="10">
+                        <Button text="Search Flights"
+                                onAction="#handleSearch"
+                                styleClass="primary-button"
+                                style="-fx-padding: 10 25 10 25;"/>
+                        <Button text="Clear"
+                                onAction="#handleClear"
+                                styleClass="secondary-button"/>
+                    </HBox>
+                </VBox>
+            </HBox>
+
+            <!-- Flights Table -->
+            <TableView fx:id="flightTable"
+                       prefHeight="320.0"
+                       styleClass="table-view, clean-table"
+                       VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="colId"        prefWidth="60.0"  text="ID"/>
+                    <TableColumn fx:id="colAirline"   prefWidth="200.0" text="Airline"/>
+                    <TableColumn fx:id="colDeparture" prefWidth="140.0" text="Departure"/>
+                    <TableColumn fx:id="colArrival"   prefWidth="140.0" text="Arrival"/>
+                    <TableColumn fx:id="colTime"      prefWidth="170.0" text="Date &amp; Time"/>
+                    <TableColumn fx:id="colPrice"     prefWidth="100.0" text="Price ($)"/>
+                    <TableColumn fx:id="colSeats"     prefWidth="90.0"  text="Seats Left"/>
+                </columns>
+            </TableView>
+
+            <!-- Action Row -->
+            <HBox alignment="CENTER_RIGHT">
+                <Button text="Book Selected Flight &#8594;"
+                        onAction="#handleBookFlight"
+                        styleClass="success-button"/>
+            </HBox>
+        </VBox>
+
+    </VBox>
+</ScrollPane>
