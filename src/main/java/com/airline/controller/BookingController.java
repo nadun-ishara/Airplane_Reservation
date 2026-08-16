@@ -93,16 +93,17 @@ public class BookingController {
 
     private Set<String> getOccupiedSeats(int flightId) {
         Set<String> occupied = new HashSet<>();
-        // Seat numbers are stored in check_in (not on reservations directly)
-        String query = "SELECT ci.seat_number FROM check_in ci " +
-                       "JOIN reservations r ON ci.reservation_id = r.reservation_id " +
-                       "WHERE r.flight_id = ?";
+        // Seat numbers are now directly in reservations table
+        String query = "SELECT seat_number FROM reservations WHERE flight_id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setInt(1, flightId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                occupied.add(rs.getString("seat_number"));
+                String seat = rs.getString("seat_number");
+                if (seat != null && !seat.isEmpty()) {
+                    occupied.add(seat);
+                }
             }
         } catch (Exception e) {
             System.out.println("[BookingController] Seat load fallback: " + e.getMessage());
@@ -111,17 +112,10 @@ public class BookingController {
     }
 
     private void generateSeatMap(Integer flightId) {
-        // Simulated occupied seats (used if DB data unavailable)
+        // Load occupied seats strictly from the database
         Set<String> occupied = new HashSet<>();
         if (flightId != null) {
             occupied = getOccupiedSeats(flightId);
-        }
-        if (occupied.isEmpty()) {
-            // Default demo occupied seats
-            occupied.add("2A"); occupied.add("3C"); occupied.add("5A");
-            occupied.add("6B"); occupied.add("7E"); occupied.add("7F");
-            occupied.add("8B"); occupied.add("8F"); occupied.add("9D");
-            occupied.add("10C"); occupied.add("11C"); occupied.add("11E");
         }
 
         String[] cols = {"A", "B", "C", "D", "E", "F"};

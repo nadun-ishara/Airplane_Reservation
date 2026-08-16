@@ -101,11 +101,10 @@ public class PaymentModalController {
 
     // -----------------------------------------------------------------------
     // Saves to the ACTUAL database schema:
-    //   reservations (user_id, flight_id, passenger_name, passport_number, contact_email, pnr, status)
-    //   check_in     (reservation_id, seat_number, boarding_time)
+    //   reservations (user_id, flight_id, passenger_name, passport_number, contact_email, pnr, seat_number, status)
     // -----------------------------------------------------------------------
     private void saveReservation(String pnr, String paymentMethod) {
-        String insertReservation = "INSERT INTO reservations (user_id, flight_id, passenger_name, passport_number, contact_email, pnr, status) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String insertReservation = "INSERT INTO reservations (user_id, flight_id, passenger_name, passport_number, contact_email, pnr, seat_number, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         String insertCheckin     = "INSERT INTO check_in (reservation_id, seat_number, boarding_time) VALUES (?, ?, NOW())";
         String updateSeats       = "UPDATE flights SET available_seats = available_seats - 1 WHERE flight_id = ? AND available_seats > 0";
 
@@ -114,26 +113,32 @@ public class PaymentModalController {
 
             // 1. Insert reservation and get the generated ID
             int reservationId = -1;
-            try (PreparedStatement ps = conn.prepareStatement(insertReservation, Statement.RETURN_GENERATED_KEYS)) {
+            try (PreparedStatement ps = conn.prepareStatement(insertReservation)) {
                 ps.setInt(1, 1);          // user_id=1 (Admin / current session user)
                 ps.setInt(2, flight != null ? flight.getFlightId() : 0);
                 ps.setString(3, passengerName);
                 ps.setString(4, passport);
                 ps.setString(5, email);
                 ps.setString(6, pnr);
-                ps.setString(7, "Paid");
+                ps.setString(7, seatNumber);
+                ps.setString(8, "Paid");
                 ps.executeUpdate();
-                try (ResultSet keys = ps.getGeneratedKeys()) {
-                    if (keys.next()) reservationId = keys.getInt(1);
+                
+                // Bulletproof way to get the last auto-incremented ID in MySQL
+                try (Statement stmt = conn.createStatement();
+                     ResultSet rs = stmt.executeQuery("SELECT LAST_INSERT_ID()")) {
+                    if (rs.next()) reservationId = rs.getInt(1);
                 }
             }
 
-            // 2. Insert check-in record (seat assignment)
+            // 2. Insert check-in record (optional depending on your DB)
             if (reservationId > 0 && seatNumber != null) {
                 try (PreparedStatement ps2 = conn.prepareStatement(insertCheckin)) {
                     ps2.setInt(1, reservationId);
                     ps2.setString(2, seatNumber);
                     ps2.executeUpdate();
+                } catch (Exception e) {
+                    System.out.println("Check-in insert skipped/failed: " + e.getMessage());
                 }
             }
 
