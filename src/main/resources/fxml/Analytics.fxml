@@ -16,83 +16,152 @@
 
     <VBox spacing="25.0" style="-fx-padding: 30;">
 
-        <!-- Page Header -->
+        <!-- ===== PAGE HEADER ===== -->
         <HBox alignment="CENTER_LEFT">
             <VBox spacing="5">
                 <Label text="Flight Analytics"
                        style="-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
-                <Label text="Visual breakdown of destination popularity and daily booking trends."
+                <Label text="Live statistics drawn directly from the reservation database."
                        style="-fx-text-fill: #6c757d;"/>
             </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="&#8635; Refresh"
+                    onAction="#handleRefresh"
+                    styleClass="secondary-button"
+                    style="-fx-background-color: #E2E8F0; -fx-border-color: transparent;"/>
         </HBox>
 
-        <!-- Charts Row: Pie + Bar side by side -->
-        <HBox spacing="25" VBox.vgrow="ALWAYS">
+        <!-- ===== KPI CARDS ROW ===== -->
+        <HBox spacing="20">
 
-            <!-- Popular Destinations Pie Chart Card -->
-            <VBox styleClass="booking-card"
-                  HBox.hgrow="ALWAYS"
-                  spacing="12">
+            <!-- Total Flights -->
+            <VBox styleClass="booking-card" HBox.hgrow="ALWAYS" alignment="CENTER" spacing="6">
+                <padding><Insets top="22" right="20" bottom="22" left="20"/></padding>
+                <Label text="&#9992; Total Flights"
+                       style="-fx-font-size: 13px; -fx-text-fill: #6c757d;"/>
+                <Label fx:id="lblTotalFlights"
+                       text="—"
+                       style="-fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
+                <Label text="in the system"
+                       style="-fx-font-size: 11px; -fx-text-fill: #adb5bd;"/>
+            </VBox>
+
+            <!-- Total Reservations -->
+            <VBox styleClass="booking-card" HBox.hgrow="ALWAYS" alignment="CENTER" spacing="6">
+                <padding><Insets top="22" right="20" bottom="22" left="20"/></padding>
+                <Label text="&#128203; Total Reservations"
+                       style="-fx-font-size: 13px; -fx-text-fill: #6c757d;"/>
+                <Label fx:id="lblTotalReservations"
+                       text="—"
+                       style="-fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
+                <Label text="all time"
+                       style="-fx-font-size: 11px; -fx-text-fill: #adb5bd;"/>
+            </VBox>
+
+            <!-- Paid / Confirmed -->
+            <VBox styleClass="booking-card" HBox.hgrow="ALWAYS" alignment="CENTER" spacing="6">
+                <padding><Insets top="22" right="20" bottom="22" left="20"/></padding>
+                <Label text="&#10003; Paid Bookings"
+                       style="-fx-font-size: 13px; -fx-text-fill: #6c757d;"/>
+                <Label fx:id="lblPaidCount"
+                       text="—"
+                       style="-fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: #28a745;"/>
+                <Label fx:id="lblPaidPct"
+                       text=""
+                       style="-fx-font-size: 11px; -fx-text-fill: #28a745;"/>
+            </VBox>
+
+            <!-- Total Revenue -->
+            <VBox styleClass="booking-card" HBox.hgrow="ALWAYS" alignment="CENTER" spacing="6">
+                <padding><Insets top="22" right="20" bottom="22" left="20"/></padding>
+                <Label text="&#128176; Total Revenue"
+                       style="-fx-font-size: 13px; -fx-text-fill: #6c757d;"/>
+                <Label fx:id="lblRevenue"
+                       text="—"
+                       style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1CA1F2;"/>
+                <Label text="from paid bookings"
+                       style="-fx-font-size: 11px; -fx-text-fill: #adb5bd;"/>
+            </VBox>
+
+        </HBox>
+
+        <!-- ===== CHARTS ROW ===== -->
+        <HBox spacing="25">
+
+            <!-- Pie Chart: Top Destinations -->
+            <VBox styleClass="booking-card" HBox.hgrow="ALWAYS" spacing="10">
                 <padding><Insets top="25" right="25" bottom="25" left="25"/></padding>
-                <Label text="Popular Destinations"
+                <Label text="Top Arrival Destinations"
                        style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
-                <Label text="Route share based on all-time bookings."
+                <Label text="Booking count per arrival city (from reservations)."
                        style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
                 <PieChart fx:id="destinationPieChart"
-                          prefHeight="350"
-                          legendSide="RIGHT"
+                          prefHeight="300"
+                          legendSide="BOTTOM"
                           VBox.vgrow="ALWAYS"/>
             </VBox>
 
-            <!-- Daily Booking Counts Bar Chart Card -->
-            <VBox styleClass="booking-card"
-                  HBox.hgrow="ALWAYS"
-                  spacing="12">
+            <!-- Bar Chart: Bookings per Airline -->
+            <VBox styleClass="booking-card" HBox.hgrow="ALWAYS" spacing="10">
                 <padding><Insets top="25" right="25" bottom="25" left="25"/></padding>
-                <Label text="Daily Booking Counts"
+                <Label text="Reservations per Airline"
                        style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
-                <Label text="Number of reservations placed per day this week."
+                <Label text="Number of bookings made for each airline."
                        style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
-                <BarChart fx:id="bookingBarChart"
-                          prefHeight="350"
+                <BarChart fx:id="airlineBarChart"
+                          prefHeight="300"
                           legendVisible="false"
                           VBox.vgrow="ALWAYS">
-                    <xAxis><CategoryAxis fx:id="xAxis" label="Day"/></xAxis>
-                    <yAxis><NumberAxis fx:id="yAxis" label="Bookings"/></yAxis>
+                    <xAxis><CategoryAxis fx:id="xAxisAirline" label="Airline"/></xAxis>
+                    <yAxis><NumberAxis fx:id="yAxisAirline" label="Reservations"/></yAxis>
                 </BarChart>
             </VBox>
 
         </HBox>
 
-        <!-- Summary Stats Row -->
-        <HBox spacing="20">
-            <VBox styleClass="booking-card" HBox.hgrow="ALWAYS" alignment="CENTER" spacing="6">
-                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                <Label text="&#128200; Top Route"
-                       style="-fx-font-size: 13px; -fx-text-fill: #6c757d;"/>
-                <Label text="CMB &#8594; DXB"
-                       style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
-                <Label text="45% of all bookings"
-                       style="-fx-font-size: 12px; -fx-text-fill: #1CA1F2;"/>
+        <!-- ===== SECOND CHARTS ROW ===== -->
+        <HBox spacing="25">
+
+            <!-- Bar Chart: Seat Availability per Flight -->
+            <VBox styleClass="booking-card" HBox.hgrow="ALWAYS" spacing="10">
+                <padding><Insets top="25" right="25" bottom="25" left="25"/></padding>
+                <Label text="Seat Availability by Flight"
+                       style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
+                <Label text="Available vs. occupied seats per flight ID."
+                       style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
+                <BarChart fx:id="seatBarChart"
+                          prefHeight="260"
+                          VBox.vgrow="ALWAYS">
+                    <xAxis><CategoryAxis fx:id="xAxisSeat" label="Flight ID"/></xAxis>
+                    <yAxis><NumberAxis fx:id="yAxisSeat" label="Seats"/></yAxis>
+                </BarChart>
             </VBox>
-            <VBox styleClass="booking-card" HBox.hgrow="ALWAYS" alignment="CENTER" spacing="6">
-                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                <Label text="&#128337; Peak Day"
-                       style="-fx-font-size: 13px; -fx-text-fill: #6c757d;"/>
-                <Label text="Thursday"
-                       style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
-                <Label text="210 reservations"
-                       style="-fx-font-size: 12px; -fx-text-fill: #1CA1F2;"/>
+
+            <!-- Pie Chart: Booking Status Split -->
+            <VBox styleClass="booking-card" HBox.hgrow="ALWAYS" spacing="10" prefWidth="320">
+                <padding><Insets top="25" right="25" bottom="25" left="25"/></padding>
+                <Label text="Booking Status Breakdown"
+                       style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
+                <Label text="Paid vs. Pending reservations."
+                       style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
+                <PieChart fx:id="statusPieChart"
+                          prefHeight="260"
+                          legendSide="BOTTOM"
+                          VBox.vgrow="ALWAYS"/>
+
+                <!-- Top Route info -->
+                <VBox spacing="4" style="-fx-padding: 12 0 0 0; -fx-border-color: #E2E8F0; -fx-border-width: 1 0 0 0;">
+                    <Label text="TOP ROUTE"
+                           style="-fx-font-size: 10px; -fx-text-fill: #94A3B8; -fx-font-weight: bold;"/>
+                    <Label fx:id="lblTopRoute"
+                           text="—"
+                           style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
+                    <Label fx:id="lblTopRouteCount"
+                           text=""
+                           style="-fx-font-size: 12px; -fx-text-fill: #1CA1F2;"/>
+                </VBox>
             </VBox>
-            <VBox styleClass="booking-card" HBox.hgrow="ALWAYS" alignment="CENTER" spacing="6">
-                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                <Label text="&#128179; Avg. Ticket"
-                       style="-fx-font-size: 13px; -fx-text-fill: #6c757d;"/>
-                <Label text="$452.00"
-                       style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
-                <Label text="All routes combined"
-                       style="-fx-font-size: 12px; -fx-text-fill: #1CA1F2;"/>
-            </VBox>
+
         </HBox>
 
     </VBox>

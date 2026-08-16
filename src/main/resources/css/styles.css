@@ -198,10 +198,10 @@
 }
 
 .sidebar-btn-active {
-    -fx-background-color: #1CA1F2; /* Bright cyan active state */
+    -fx-background-color: #1CA1F2;
     -fx-text-fill: #FFFFFF;
     -fx-font-weight: bold;
-    -fx-background-radius: 8px;
+    -fx-background-radius: 10px;
 }
 
 .sidebar-btn-logout {
