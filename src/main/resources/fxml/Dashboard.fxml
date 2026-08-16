@@ -17,11 +17,11 @@
             <VBox spacing="5">
                 <Label text="Reservation Dashboard"
                        style="-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
-                <Label text="Monitoring real-time traffic for CMB to DXB routes."
+                <Label text="Search available flights and make a reservation."
                        style="-fx-text-fill: #6c757d;"/>
             </VBox>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button text="&#8635; Refresh Data"
+            <Button text="&#8635; Refresh"
                     onAction="#handleClear"
                     styleClass="secondary-button"
                     style="-fx-background-color: #E2E8F0; -fx-border-color: transparent;"/>
@@ -66,9 +66,16 @@
                 </VBox>
             </HBox>
 
+            <!-- Hint above the table -->
+            <Label fx:id="lblSelectHint"
+                   text="&#128071;  Click any row below to select a flight, then click Book Selected Flight"
+                   style="-fx-font-size: 12px; -fx-text-fill: #1CA1F2;
+                          -fx-background-color: #EBF8FF; -fx-background-radius: 6;
+                          -fx-padding: 8 14 8 14;"/>
+
             <!-- Flights Table -->
             <TableView fx:id="flightTable"
-                       prefHeight="320.0"
+                       prefHeight="300.0"
                        styleClass="table-view, clean-table"
                        VBox.vgrow="ALWAYS">
                 <columns>
@@ -80,14 +87,49 @@
                     <TableColumn fx:id="colPrice"     prefWidth="100.0" text="Price ($)"/>
                     <TableColumn fx:id="colSeats"     prefWidth="90.0"  text="Seats Left"/>
                 </columns>
+                <placeholder>
+                    <Label text="No flights found. Try different search terms."
+                           style="-fx-text-fill: #6c757d;"/>
+                </placeholder>
             </TableView>
 
-            <!-- Action Row -->
-            <HBox alignment="CENTER_RIGHT">
-                <Button text="Book Selected Flight &#8594;"
+            <!-- Action Row: selection status + book button -->
+            <HBox alignment="CENTER_LEFT" spacing="20">
+
+                <!-- Selected flight info panel -->
+                <HBox fx:id="selectedFlightPanel"
+                      alignment="CENTER_LEFT"
+                      spacing="12"
+                      HBox.hgrow="ALWAYS"
+                      style="-fx-background-color: #F0FDF4; -fx-background-radius: 8;
+                             -fx-padding: 10 16 10 16; -fx-border-color: #86EFAC;
+                             -fx-border-radius: 8; -fx-border-width: 1;"
+                      visible="false" managed="false">
+                    <Label text="&#10003;" style="-fx-text-fill: #22C55E; -fx-font-size: 16px; -fx-font-weight: bold;"/>
+                    <VBox spacing="2">
+                        <Label text="SELECTED FLIGHT"
+                               style="-fx-font-size: 10px; -fx-text-fill: #15803D; -fx-font-weight: bold;"/>
+                        <Label fx:id="lblSelectedFlight"
+                               text=""
+                               style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #0A192F;"/>
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lblSelectedPrice"
+                           text=""
+                           style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #15803D;"/>
+                </HBox>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <!-- Book button — disabled until a row is selected -->
+                <Button fx:id="btnBook"
+                        text="Book Selected Flight &#8594;"
                         onAction="#handleBookFlight"
-                        styleClass="success-button"/>
+                        styleClass="success-button"
+                        disable="true"
+                        style="-fx-background-color: #94A3B8; -fx-opacity: 0.75;"/>
             </HBox>
+
         </VBox>
 
     </VBox>

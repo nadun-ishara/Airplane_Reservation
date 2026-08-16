@@ -4,8 +4,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
 
-<HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-      style="-fx-background-color: #F4F7F6;"
+<HBox style="-fx-background-color: #F4F7F6;"
       stylesheets="@../css/styles.css"
       xmlns="http://javafx.com/javafx/17"
       xmlns:fx="http://javafx.com/fxml/1"
@@ -134,14 +133,14 @@
                 <VBox spacing="3" alignment="CENTER_RIGHT">
                     <Label text="TOTAL PRICE"
                            style="-fx-font-size: 10px; -fx-text-fill: #94A3B8; -fx-font-weight: bold;"/>
-                    <Label fx:id="lblTotalPrice" text="$0.00"
+                    <Label fx:id="lblTotalPrice" text="\$0.00"
                            style="-fx-font-size: 26px; -fx-text-fill: #0A192F; -fx-font-weight: bold;"/>
                 </VBox>
             </HBox>
 
             <Button fx:id="btnProceed" text="PROCEED TO PAYMENT  →"
                     onAction="#handleProceed"
-                    prefWidth="1.7976931348623157E308" prefHeight="50"
+                    prefWidth="500.0" prefHeight="50"
                     style="-fx-background-color: #94A3B8; -fx-text-fill: white;
                            -fx-font-weight: bold; -fx-background-radius: 8;
                            -fx-font-size: 13px; -fx-cursor: hand;"/>

@@ -43,27 +43,36 @@ public class BookingController {
 
     @FXML
     public void initialize() {
-        comboTitle.getItems().addAll("Mr.", "Mrs.", "Ms.", "Dr.", "Prof.");
-        comboTitle.getSelectionModel().selectFirst();
+        // Null-safe: guards against stale build / fx:id mismatches
+        if (comboTitle != null) {
+            comboTitle.getItems().addAll("Mr.", "Mrs.", "Ms.", "Dr.", "Prof.");
+            comboTitle.getSelectionModel().selectFirst();
+        }
 
         // Real-time validation listeners
-        txtPassport.textProperty().addListener((obs, old, val) -> {
-            if (!val.isEmpty() && !PASSPORT_PATTERN.matcher(val.toUpperCase()).matches()) {
-                lblPassportError.setText("Must be 5-12 uppercase alphanumeric chars (e.g. N1234567)");
-            } else {
-                lblPassportError.setText("");
-            }
-        });
+        if (txtPassport != null) {
+            txtPassport.textProperty().addListener((obs, old, val) -> {
+                if (!val.isEmpty() && !PASSPORT_PATTERN.matcher(val.toUpperCase()).matches()) {
+                    if (lblPassportError != null)
+                        lblPassportError.setText("Must be 5-12 uppercase alphanumeric chars (e.g. N1234567)");
+                } else {
+                    if (lblPassportError != null) lblPassportError.setText("");
+                }
+            });
+        }
 
-        txtEmail.textProperty().addListener((obs, old, val) -> {
-            if (!val.isEmpty() && !EMAIL_PATTERN.matcher(val).matches()) {
-                lblEmailError.setText("Enter a valid email address");
-            } else {
-                lblEmailError.setText("");
-            }
-        });
+        if (txtEmail != null) {
+            txtEmail.textProperty().addListener((obs, old, val) -> {
+                if (!val.isEmpty() && !EMAIL_PATTERN.matcher(val).matches()) {
+                    if (lblEmailError != null)
+                        lblEmailError.setText("Enter a valid email address");
+                } else {
+                    if (lblEmailError != null) lblEmailError.setText("");
+                }
+            });
+        }
 
-        // Generate seat map with default flight
+        // Generate seat map
         generateSeatMap(null);
     }
 
@@ -84,7 +93,10 @@ public class BookingController {
 
     private Set<String> getOccupiedSeats(int flightId) {
         Set<String> occupied = new HashSet<>();
-        String query = "SELECT seat_number FROM reservations WHERE flight_id = ? AND seat_number IS NOT NULL";
+        // Seat numbers are stored in check_in (not on reservations directly)
+        String query = "SELECT ci.seat_number FROM check_in ci " +
+                       "JOIN reservations r ON ci.reservation_id = r.reservation_id " +
+                       "WHERE r.flight_id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setInt(1, flightId);
@@ -93,7 +105,7 @@ public class BookingController {
                 occupied.add(rs.getString("seat_number"));
             }
         } catch (Exception e) {
-            // If seat_number column doesn't exist yet, use default simulated occupancy
+            System.out.println("[BookingController] Seat load fallback: " + e.getMessage());
         }
         return occupied;
     }

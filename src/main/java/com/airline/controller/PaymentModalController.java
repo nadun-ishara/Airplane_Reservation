@@ -10,9 +10,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Random;
 
 public class PaymentModalController {
@@ -28,11 +26,11 @@ public class PaymentModalController {
     @FXML private TextField txtCvv;
     @FXML private TextField txtPaypalEmail;
 
-    private Flight flight;
-    private String passengerName;
-    private String passport;
-    private String email;
-    private String seatNumber;
+    private Flight  flight;
+    private String  passengerName;
+    private String  passport;
+    private String  email;
+    private String  seatNumber;
 
     @FXML
     public void initialize() {
@@ -41,23 +39,21 @@ public class PaymentModalController {
 
         comboPaymentMethod.getSelectionModel().selectedItemProperty().addListener((obs, old, val) -> {
             boolean isCard = "Credit / Debit Card".equals(val);
-            cardDetailsBox.setVisible(isCard);
-            cardDetailsBox.setManaged(isCard);
-            paypalDetailsBox.setVisible(!isCard);
-            paypalDetailsBox.setManaged(!isCard);
+            cardDetailsBox .setVisible(isCard);   cardDetailsBox .setManaged(isCard);
+            paypalDetailsBox.setVisible(!isCard);  paypalDetailsBox.setManaged(!isCard);
         });
     }
 
     public void setBookingDetails(Flight flight, String name, String passport, String email, String seat) {
-        this.flight = flight;
+        this.flight        = flight;
         this.passengerName = name;
-        this.passport = passport;
-        this.email = email;
-        this.seatNumber = seat;
+        this.passport      = passport;
+        this.email         = email;
+        this.seatNumber    = seat;
 
-        double price = flight != null ? flight.getPrice() : 450.0;
-        lblAmount.setText(String.format("Total Amount Due: $%.2f", price));
-        lblPassengerInfo.setText(name + " | Seat: " + seat);
+        double price = flight != null ? flight.getPrice() : 0.0;
+        lblAmount      .setText(String.format("Total Amount Due: $%.2f", price));
+        lblPassengerInfo.setText(name + "  |  Seat: " + seat);
     }
 
     @FXML
@@ -65,7 +61,8 @@ public class PaymentModalController {
         String method = comboPaymentMethod.getValue();
 
         if ("Credit / Debit Card".equals(method)) {
-            if (txtNameOnCard.getText().trim().isEmpty() || txtCardNumber.getText().trim().length() < 15
+            if (txtNameOnCard.getText().trim().isEmpty()
+                    || txtCardNumber.getText().trim().length() < 15
                     || txtCvv.getText().trim().length() < 3) {
                 showAlert(Alert.AlertType.ERROR, "Invalid Card", "Please enter valid card details.");
                 return;
@@ -81,62 +78,81 @@ public class PaymentModalController {
         saveReservation(pnr, method);
     }
 
+    // -----------------------------------------------------------------------
+    // Saves to the ACTUAL database schema:
+    //   reservations (user_id, flight_id, passenger_name, passport_number, contact_email, pnr, status)
+    //   check_in     (reservation_id, seat_number, boarding_time)
+    // -----------------------------------------------------------------------
     private void saveReservation(String pnr, String paymentMethod) {
-        String insertSql = "INSERT INTO reservations (user_id, flight_id, passenger_name, passport_number, contact_email, pnr, status) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        String updateSql = "UPDATE flights SET available_seats = available_seats - 1 WHERE flight_id = ?";
+        String insertReservation = "INSERT INTO reservations (user_id, flight_id, passenger_name, passport_number, contact_email, pnr, status) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String insertCheckin     = "INSERT INTO check_in (reservation_id, seat_number, boarding_time) VALUES (?, ?, NOW())";
+        String updateSeats       = "UPDATE flights SET available_seats = available_seats - 1 WHERE flight_id = ? AND available_seats > 0";
 
         try (Connection conn = DatabaseConnection.getConnection()) {
             conn.setAutoCommit(false);
 
-            try (PreparedStatement ps1 = conn.prepareStatement(insertSql)) {
-                ps1.setInt(1, 1);
-                ps1.setInt(2, flight != null ? flight.getFlightId() : 0);
-                ps1.setString(3, passengerName);
-                ps1.setString(4, passport);
-                ps1.setString(5, email);
-                ps1.setString(6, pnr);
-                ps1.setString(7, "Paid");
-                ps1.executeUpdate();
+            // 1. Insert reservation and get the generated ID
+            int reservationId = -1;
+            try (PreparedStatement ps = conn.prepareStatement(insertReservation, Statement.RETURN_GENERATED_KEYS)) {
+                ps.setInt(1, 1);          // user_id=1 (Admin / current session user)
+                ps.setInt(2, flight != null ? flight.getFlightId() : 0);
+                ps.setString(3, passengerName);
+                ps.setString(4, passport);
+                ps.setString(5, email);
+                ps.setString(6, pnr);
+                ps.setString(7, "Paid");
+                ps.executeUpdate();
+                try (ResultSet keys = ps.getGeneratedKeys()) {
+                    if (keys.next()) reservationId = keys.getInt(1);
+                }
             }
 
-            if (flight != null) {
-                try (PreparedStatement ps2 = conn.prepareStatement(updateSql)) {
-                    ps2.setInt(1, flight.getFlightId());
+            // 2. Insert check-in record (seat assignment)
+            if (reservationId > 0 && seatNumber != null) {
+                try (PreparedStatement ps2 = conn.prepareStatement(insertCheckin)) {
+                    ps2.setInt(1, reservationId);
+                    ps2.setString(2, seatNumber);
                     ps2.executeUpdate();
+                }
+            }
+
+            // 3. Decrement available_seats on the flight
+            if (flight != null) {
+                try (PreparedStatement ps3 = conn.prepareStatement(updateSeats)) {
+                    ps3.setInt(1, flight.getFlightId());
+                    ps3.executeUpdate();
                 }
             }
 
             conn.commit();
             conn.setAutoCommit(true);
 
-            // Show success and navigate to Dashboard
-            showAlert(Alert.AlertType.INFORMATION, "Payment Successful! ✈",
-                    "Booking confirmed via " + paymentMethod + "!\n\n" +
-                    "Passenger: " + passengerName + "\n" +
-                    "Seat: " + seatNumber + "\n" +
-                    "PNR: " + pnr + "\n\n" +
-                    "Please save your PNR for Check-in.");
+            showAlert(Alert.AlertType.INFORMATION, "Payment Successful! \u2708",
+                    "Booking confirmed via " + paymentMethod + "!\n\n"
+                    + "Passenger : " + passengerName + "\n"
+                    + "Seat      : " + seatNumber + "\n"
+                    + "PNR       : " + pnr + "\n\n"
+                    + "Please save your PNR for Check-in.");
 
             MainController.getInstance().showDashboard();
 
         } catch (SQLException e) {
             e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Database Error", "Payment processed but failed to save booking.");
+            showAlert(Alert.AlertType.ERROR, "Database Error",
+                    "Could not save booking:\n" + e.getMessage());
         }
     }
 
     @FXML
     void handleCancel(ActionEvent event) {
-        MainController.getInstance().showBookings();
+        MainController.getInstance().showDashboard();
     }
 
     private String generatePNR() {
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         StringBuilder pnr = new StringBuilder();
         Random rnd = new Random();
-        for (int i = 0; i < 6; i++) {
-            pnr.append(chars.charAt(rnd.nextInt(chars.length())));
-        }
+        for (int i = 0; i < 6; i++) pnr.append(chars.charAt(rnd.nextInt(chars.length())));
         return pnr.toString();
     }
 

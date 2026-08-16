@@ -7,6 +7,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
@@ -15,13 +16,15 @@ import java.io.IOException;
 public class MainController {
 
     @FXML private StackPane contentArea;
-    
+
     @FXML private Button btnDashboard;
     @FXML private Button btnBookings;
     @FXML private Button btnAnalytics;
     @FXML private Button btnSettings;
-    
-    // We can define a static reference to allow other controllers to change views
+
+    @FXML private Label lblPageTitle;
+
+    // Static singleton so child controllers can trigger navigation
     private static MainController instance;
 
     public MainController() {
@@ -34,44 +37,58 @@ public class MainController {
 
     @FXML
     public void initialize() {
-        // Load the Dashboard view by default into the center area
         showDashboard();
     }
+
+    // -----------------------------------------------------------------------
+    // Navigation Methods
+    // -----------------------------------------------------------------------
 
     @FXML
     public void showDashboard() {
         setActiveTab(btnDashboard);
+        setPageTitle("\u2708  Reservation Dashboard");
         loadView("/fxml/Dashboard.fxml");
     }
 
     @FXML
     public void showBookings() {
         setActiveTab(btnBookings);
+        setPageTitle("\uD83D\uDCCB  My Bookings");
         loadView("/fxml/MyBookings.fxml");
     }
 
     @FXML
     public void showAnalytics() {
         setActiveTab(btnAnalytics);
+        setPageTitle("\uD83D\uDCC8  Flight Analytics");
         loadView("/fxml/Analytics.fxml");
     }
 
     @FXML
     public void showSettings() {
         setActiveTab(btnSettings);
+        setPageTitle("\u2699  Account Settings");
         loadView("/fxml/Settings.fxml");
     }
 
+    // -----------------------------------------------------------------------
+    // Helpers
+    // -----------------------------------------------------------------------
+
     private void setActiveTab(Button activeButton) {
-        if (btnDashboard == null) return; // Guard clause if initialize hasn't completed
+        if (btnDashboard == null) return;
         btnDashboard.getStyleClass().remove("sidebar-btn-active");
-        btnBookings.getStyleClass().remove("sidebar-btn-active");
+        btnBookings .getStyleClass().remove("sidebar-btn-active");
         btnAnalytics.getStyleClass().remove("sidebar-btn-active");
-        btnSettings.getStyleClass().remove("sidebar-btn-active");
-        
+        btnSettings .getStyleClass().remove("sidebar-btn-active");
         if (activeButton != null) {
             activeButton.getStyleClass().add("sidebar-btn-active");
         }
+    }
+
+    private void setPageTitle(String title) {
+        if (lblPageTitle != null) lblPageTitle.setText(title);
     }
 
     @FXML
@@ -80,7 +97,7 @@ public class MainController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
             Parent root = loader.load();
             Stage stage = new Stage();
-            stage.setTitle("Airline Reservation - Login");
+            stage.setTitle("SkyLink Pro – Login");
             stage.setScene(new Scene(root, 600, 400));
             stage.show();
 
@@ -91,6 +108,7 @@ public class MainController {
         }
     }
 
+    /** Load any FXML into the content area */
     public void loadView(String fxmlPath) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
@@ -98,18 +116,18 @@ public class MainController {
             setView(view);
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("Failed to load view: " + fxmlPath);
+            System.out.println("[MainController] Failed to load view: " + fxmlPath);
         }
     }
-    
+
     public void setView(Node view) {
         contentArea.getChildren().setAll(view);
     }
-    
-    /** Called externally (e.g., from DashboardController) to sync the active sidebar tab */
+
+    /** Called from child controllers (e.g. DashboardController) to sync the sidebar highlight */
     public void setActiveTabExternal(String tab) {
         switch (tab) {
-            case "bookings" -> setActiveTab(btnBookings);
+            case "bookings"  -> setActiveTab(btnBookings);
             case "analytics" -> setActiveTab(btnAnalytics);
             case "settings"  -> setActiveTab(btnSettings);
             default          -> setActiveTab(btnDashboard);

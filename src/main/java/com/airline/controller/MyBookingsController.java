@@ -164,21 +164,29 @@ public class MyBookingsController {
             return;
         }
         if ("pending".equalsIgnoreCase(selected.getStatus())) {
-            // Pending bookings can be deleted outright
             Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
             confirm.setTitle("Cancel Reservation");
-            confirm.setHeaderText("Cancel Reservation #" + selected.getBookingId() + "?");
-            confirm.setContentText("This pending booking will be permanently removed.");
+            confirm.setHeaderText("Cancel Booking #" + selected.getBookingId() + " (" + selected.getRoute() + ")");
+            confirm.setContentText("Are you sure you want to cancel this booking? This action cannot be undone.");
+            
+            // Standard button types are automatically styled correctly by the OS
+            ButtonType btnYes = new ButtonType("Cancel Booking", ButtonBar.ButtonData.OK_DONE);
+            ButtonType btnNo = new ButtonType("Keep Booking", ButtonBar.ButtonData.CANCEL_CLOSE);
+            confirm.getButtonTypes().setAll(btnYes, btnNo);
+
             confirm.showAndWait().ifPresent(resp -> {
-                if (resp == ButtonType.OK) {
+                if (resp == btnYes) {
                     deleteReservation(selected.getBookingId());
                     loadBookings();
                 }
             });
         } else {
-            showAlert(Alert.AlertType.INFORMATION, "Cannot Cancel",
-                    "Only Pending reservations can be cancelled.\n" +
-                    "Reservation #" + selected.getBookingId() + " is already " + selected.getStatus() + ".");
+            // Already paid/confirmed
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Cannot Cancel");
+            alert.setHeaderText("Reservation #" + selected.getBookingId() + " is already Paid");
+            alert.setContentText("Only 'Pending' reservations can be cancelled directly through this portal.\nPlease contact support for refunds on paid bookings.");
+            alert.show();
         }
     }
 
