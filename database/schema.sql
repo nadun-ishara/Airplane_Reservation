@@ -25,6 +25,11 @@ CREATE TABLE IF NOT EXISTS reservations (
     reservation_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT,
     flight_id INT,
+    passenger_name VARCHAR(100) NOT NULL,
+    passport_number VARCHAR(50) NOT NULL,
+    contact_email VARCHAR(100) NOT NULL,
+    pnr VARCHAR(6) UNIQUE NOT NULL,
+    seat_number VARCHAR(10) NOT NULL,
     booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     status ENUM('Paid', 'Pending') NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
@@ -39,6 +44,4 @@ CREATE TABLE IF NOT EXISTS check_in (
     FOREIGN KEY (reservation_id) REFERENCES reservations(reservation_id)
 );
 
--- Insert a default Admin user so you can test your login screen!
-INSERT INTO users (full_name, email, password, nic_passport, role) 
-VALUES ('System Admin', 'admin@airline.com', 'admin123', 'ADMIN001', 'Admin');
+

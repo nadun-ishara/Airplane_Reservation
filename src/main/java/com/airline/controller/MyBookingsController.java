@@ -86,15 +86,13 @@ public class MyBookingsController {
                        r.flight_id,
                        f.airline,
                        CONCAT(f.departure_city, ' → ', f.arrival_city) AS route,
-                       u.full_name,
-                       COALESCE(ci.seat_number, 'Not Assigned') AS seat_number,
+                       r.passenger_name AS full_name,
+                       COALESCE(r.seat_number, 'Not Assigned') AS seat_number,
                        r.status,
                        f.price,
                        r.booking_date
                 FROM reservations r
-                JOIN    flights  f  ON r.flight_id = f.flight_id
-                JOIN    users    u  ON r.user_id   = u.user_id
-                LEFT JOIN check_in ci ON ci.reservation_id = r.reservation_id
+                JOIN flights f ON r.flight_id = f.flight_id
                 ORDER BY r.reservation_id DESC
                 """;
 
