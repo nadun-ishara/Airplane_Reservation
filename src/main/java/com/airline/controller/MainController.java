@@ -1,5 +1,6 @@
 package com.airline.controller;
 
+import com.airline.util.UserSession;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -12,6 +13,7 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.net.URL;
 
 public class MainController {
 
@@ -23,6 +25,10 @@ public class MainController {
     @FXML private Button btnSettings;
 
     @FXML private Label lblPageTitle;
+    @FXML private Label lblUserName;
+    @FXML private Label lblUserRole;
+    @FXML private Label lblAvatar;
+    @FXML private Label lblPortalSubtitle;
 
     // Static singleton so child controllers can trigger navigation
     private static MainController instance;
@@ -37,7 +43,25 @@ public class MainController {
 
     @FXML
     public void initialize() {
+        updateUserProfileDisplay();
         showDashboard();
+    }
+
+    public void updateUserProfileDisplay() {
+        UserSession session = UserSession.getInstance();
+        if (session != null) {
+            String name = session.getFullName() != null ? session.getFullName() : "User";
+            String role = session.getRole() != null ? session.getRole() : "Passenger";
+
+            if (lblUserName != null) lblUserName.setText(name);
+            if (lblUserRole != null) lblUserRole.setText(role.toUpperCase());
+            if (lblAvatar != null) {
+                lblAvatar.setText(name.isEmpty() ? "U" : name.substring(0, 1).toUpperCase());
+            }
+            if (lblPortalSubtitle != null) {
+                lblPortalSubtitle.setText("✈  " + role + " Portal");
+            }
+        }
     }
 
     // -----------------------------------------------------------------------
@@ -94,11 +118,21 @@ public class MainController {
     @FXML
     public void handleLogout(ActionEvent event) {
         try {
+            UserSession.cleanUserSession();
+
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
             Parent root = loader.load();
             Stage stage = new Stage();
-            stage.setTitle("SkyLink Pro – Login");
-            stage.setScene(new Scene(root, 600, 400));
+            stage.setTitle("Airline Reservation System - Login");
+
+            Scene scene = new Scene(root, 800, 600);
+            URL cssResource = getClass().getResource("/css/styles.css");
+            if (cssResource != null) {
+                scene.getStylesheets().add(cssResource.toExternalForm());
+            }
+
+            stage.setScene(scene);
+            stage.setResizable(false);
             stage.show();
 
             Stage currentStage = (Stage) contentArea.getScene().getWindow();

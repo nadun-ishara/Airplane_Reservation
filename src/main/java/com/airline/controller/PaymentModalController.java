@@ -114,7 +114,11 @@ public class PaymentModalController {
             // 1. Insert reservation and get the generated ID
             int reservationId = -1;
             try (PreparedStatement ps = conn.prepareStatement(insertReservation)) {
-                ps.setInt(1, 1);          // user_id=1 (Admin / current session user)
+                int currentUserId = 1;
+                if (com.airline.util.UserSession.getInstance() != null) {
+                    currentUserId = com.airline.util.UserSession.getInstance().getUserId();
+                }
+                ps.setInt(1, currentUserId);
                 ps.setInt(2, flight != null ? flight.getFlightId() : 0);
                 ps.setString(3, passengerName);
                 ps.setString(4, passport);
@@ -192,9 +196,20 @@ public class PaymentModalController {
             HBox buttonBox = new HBox(15);
             buttonBox.setAlignment(Pos.CENTER);
             
-            Button btnPdf = new Button("Download PDF");
-            btnPdf.setStyle("-fx-background-color: #3B82F6; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 10 20 10 20; -fx-background-radius: 6; -fx-cursor: hand;");
-            btnPdf.setOnAction(e -> generatePdf(pnr, passengerName, seatNumber, paymentMethod, successStage));
+            Button btnPdf = new Button("Download Boarding Pass (PDF)");
+            btnPdf.setStyle("-fx-background-color: #1CA1F2; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 10 20 10 20; -fx-background-radius: 6; -fx-cursor: hand;");
+            btnPdf.setOnAction(e -> {
+                String airline = flight != null ? flight.getAirline() : "SkyLink Pro";
+                String route = flight != null ? (flight.getDepartureCity() + " → " + flight.getArrivalCity()) : "Scheduled Route";
+                String time = flight != null ? flight.getDepartureDatetime() : "Scheduled";
+                double price = flight != null ? flight.getPrice() : 0.0;
+                boolean ok = com.airline.util.BoardingPassGenerator.generate(
+                    successStage, pnr, passengerName, airline, route, time, seatNumber, price, "Paid"
+                );
+                if (ok) {
+                    showAlert(Alert.AlertType.INFORMATION, "Boarding Pass Generated", "Boarding pass PDF has been generated and saved successfully!");
+                }
+            });
 
             Button btnClose = new Button("Return to Dashboard");
             btnClose.setStyle("-fx-background-color: #E2E8F0; -fx-text-fill: #0F172A; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 10 20 10 20; -fx-background-radius: 6; -fx-cursor: hand;");
@@ -216,62 +231,6 @@ public class PaymentModalController {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Database Error",
                     "Could not save booking:\n" + e.getMessage());
-        }
-    }
-
-    private void generatePdf(String pnr, String passengerName, String seatNumber, String paymentMethod, Stage owner) {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Save Boarding Pass");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
-        fileChooser.setInitialFileName("BoardingPass_" + pnr + ".pdf");
-        
-        File file = fileChooser.showSaveDialog(owner);
-        if (file != null) {
-            try {
-                Document document = new Document();
-                PdfWriter.getInstance(document, new FileOutputStream(file));
-                document.open();
-                
-                com.itextpdf.text.Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 24, com.itextpdf.text.BaseColor.BLACK);
-                com.itextpdf.text.Font subFont = FontFactory.getFont(FontFactory.HELVETICA, 14, com.itextpdf.text.BaseColor.DARK_GRAY);
-                com.itextpdf.text.Font boldFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, com.itextpdf.text.BaseColor.BLACK);
-                
-                Paragraph title = new Paragraph("SkyLink Pro - Boarding Pass", titleFont);
-                title.setAlignment(Element.ALIGN_CENTER);
-                document.add(title);
-                
-                document.add(new Paragraph("\n"));
-                
-                PdfPTable table = new PdfPTable(2);
-                table.setWidthPercentage(100);
-                table.setSpacingBefore(10f);
-                
-                table.addCell(new PdfPCell(new Paragraph("Passenger Name:", subFont)));
-                table.addCell(new PdfPCell(new Paragraph(passengerName, boldFont)));
-                
-                table.addCell(new PdfPCell(new Paragraph("Flight Airline:", subFont)));
-                table.addCell(new PdfPCell(new Paragraph(flight != null ? flight.getAirline() : "N/A", boldFont)));
-                
-                table.addCell(new PdfPCell(new Paragraph("Seat Number:", subFont)));
-                table.addCell(new PdfPCell(new Paragraph(seatNumber, boldFont)));
-                
-                table.addCell(new PdfPCell(new Paragraph("Payment Status:", subFont)));
-                table.addCell(new PdfPCell(new Paragraph("Paid via " + paymentMethod, boldFont)));
-                
-                document.add(table);
-                
-                document.add(new Paragraph("\n"));
-                Paragraph pnrPara = new Paragraph("PNR: " + pnr, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 28, com.itextpdf.text.BaseColor.BLUE));
-                pnrPara.setAlignment(Element.ALIGN_CENTER);
-                document.add(pnrPara);
-                
-                document.close();
-                
-                showAlert(Alert.AlertType.INFORMATION, "PDF Saved", "Your boarding pass has been saved to:\n" + file.getAbsolutePath());
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                showAlert(Alert.AlertType.ERROR, "PDF Error", "Could not generate PDF:\n" + ex.getMessage());
-            }
         }
     }
 

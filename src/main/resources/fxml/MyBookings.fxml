@@ -15,9 +15,9 @@
         <!-- Page Header -->
         <HBox alignment="CENTER_LEFT">
             <VBox spacing="5">
-                <Label text="My Bookings"
+                <Label fx:id="lblHeaderTitle" text="My Bookings"
                        style="-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
-                <Label text="View and manage all your active and past reservations."
+                <Label fx:id="lblHeaderSubtitle" text="View and manage all your active and past reservations."
                        style="-fx-text-fill: #6c757d;"/>
             </VBox>
             <Region HBox.hgrow="ALWAYS"/>
@@ -31,14 +31,21 @@
         <VBox styleClass="booking-card" spacing="20" VBox.vgrow="ALWAYS">
             <padding><Insets top="25" right="25" bottom="25" left="25"/></padding>
 
-            <HBox alignment="CENTER_LEFT" spacing="20">
+            <HBox alignment="CENTER_LEFT" spacing="15">
                 <Label text="Reservation History"
                        style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #003366;"/>
                 <Region HBox.hgrow="ALWAYS"/>
+
+                <!-- Search Input -->
+                <TextField fx:id="txtSearch"
+                           promptText="Search by PNR, name, airline..."
+                           prefWidth="260"
+                           styleClass="input-field"/>
+
                 <!-- Quick filter -->
                 <ComboBox fx:id="filterCombo"
                           promptText="Filter by Status"
-                          prefWidth="160"
+                          prefWidth="140"
                           onAction="#handleFilter"
                           styleClass="input-field"/>
             </HBox>
@@ -48,27 +55,32 @@
                        styleClass="table-view, clean-table"
                        VBox.vgrow="ALWAYS">
                 <columns>
-                    <TableColumn fx:id="colBookingId"  prefWidth="80.0"  text="Booking #"/>
-                    <TableColumn fx:id="colFlight"     prefWidth="90.0"  text="Flight ID"/>
+                    <TableColumn fx:id="colBookingId"  prefWidth="70.0"  text="ID"/>
+                    <TableColumn fx:id="colPnr"        prefWidth="90.0"  text="PNR"/>
+                    <TableColumn fx:id="colFlight"     prefWidth="80.0"  text="Flight"/>
                     <TableColumn fx:id="colAirline"    prefWidth="160.0" text="Airline"/>
-                    <TableColumn fx:id="colRoute"      prefWidth="200.0" text="Route"/>
+                    <TableColumn fx:id="colRoute"      prefWidth="180.0" text="Route"/>
                     <TableColumn fx:id="colPassenger"  prefWidth="160.0" text="Passenger"/>
                     <TableColumn fx:id="colSeat"       prefWidth="80.0"  text="Seat"/>
-                    <TableColumn fx:id="colStatus"     prefWidth="100.0" text="Status"/>
+                    <TableColumn fx:id="colStatus"     prefWidth="90.0"  text="Status"/>
                     <TableColumn fx:id="colPrice"      prefWidth="90.0"  text="Price ($)"/>
                 </columns>
                 <placeholder>
-                    <Label text="No bookings found. Book a flight from the Dashboard."
+                    <Label text="No reservations found. Book a flight from the Dashboard."
                            style="-fx-text-fill: #6c757d; -fx-font-size: 14px;"/>
                 </placeholder>
             </TableView>
 
             <!-- Action Row -->
-            <HBox alignment="CENTER_RIGHT" spacing="10">
+            <HBox alignment="CENTER_RIGHT" spacing="12">
+                <Button text="Download Boarding Pass (PDF)"
+                        onAction="#handleDownloadBoardingPass"
+                        styleClass="primary-button"
+                        style="-fx-background-color: #1CA1F2; -fx-padding: 9 18;"/>
                 <Button text="Cancel Booking"
                         onAction="#handleCancelBooking"
                         styleClass="secondary-button"
-                        style="-fx-text-fill: #dc3545; -fx-border-color: #dc3545;"/>
+                        style="-fx-text-fill: #dc3545; -fx-border-color: #dc3545; -fx-padding: 8 18;"/>
             </HBox>
         </VBox>
 
@@ -84,7 +96,7 @@
             </VBox>
             <VBox styleClass="booking-card" HBox.hgrow="ALWAYS" alignment="CENTER" spacing="6">
                 <padding><Insets top="18" right="20" bottom="18" left="20"/></padding>
-                <Label text="Paid"
+                <Label text="Confirmed / Paid"
                        style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
                 <Label fx:id="lblConfirmedCount"
                        text="0"
@@ -92,7 +104,7 @@
             </VBox>
             <VBox styleClass="booking-card" HBox.hgrow="ALWAYS" alignment="CENTER" spacing="6">
                 <padding><Insets top="18" right="20" bottom="18" left="20"/></padding>
-                <Label text="Total Spent ($)"
+                <Label text="Total Revenue / Spent ($)"
                        style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
                 <Label fx:id="lblTotalSpent"
                        text="0.00"

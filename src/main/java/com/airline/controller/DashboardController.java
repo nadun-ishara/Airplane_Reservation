@@ -9,6 +9,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
+import javafx.stage.Stage;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -30,6 +31,7 @@ public class DashboardController {
     @FXML private TableColumn<Flight, Integer>  colSeats;
 
     // UX elements
+    @FXML private Button  btnAddFlight;
     @FXML private Button  btnBook;
     @FXML private Label   lblSelectHint;
     @FXML private HBox    selectedFlightPanel;
@@ -48,6 +50,14 @@ public class DashboardController {
         colTime     .setCellValueFactory(new PropertyValueFactory<>("departureDatetime"));
         colPrice    .setCellValueFactory(new PropertyValueFactory<>("price"));
         colSeats    .setCellValueFactory(new PropertyValueFactory<>("availableSeats"));
+
+        // Add Flight button only visible to Admins
+        com.airline.util.UserSession session = com.airline.util.UserSession.getInstance();
+        if (btnAddFlight != null) {
+            boolean isAdmin = (session != null && session.isAdmin());
+            btnAddFlight.setVisible(isAdmin);
+            btnAddFlight.setManaged(isAdmin);
+        }
 
         // ── Selection listener ──────────────────────────────────────────────
         // Reacts every time the user clicks a different row.
@@ -178,6 +188,117 @@ public class DashboardController {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Error", "Could not open booking screen:\n" + e.getMessage());
         }
+    }
+
+    @FXML
+    void handleAddFlight(ActionEvent event) {
+        Stage addStage = new Stage();
+        addStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        addStage.setTitle("SkyLink Pro - Add New Flight");
+
+        javafx.scene.layout.VBox root = new javafx.scene.layout.VBox(12);
+        root.setStyle("-fx-background-color: #FFFFFF; -fx-padding: 24;");
+        root.setPrefWidth(420);
+
+        Label title = new Label("Add New Scheduled Flight");
+        title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #003366;");
+
+        TextField txtId = new TextField();
+        txtId.setPromptText("Flight ID (e.g. 106)");
+        txtId.setStyle("-fx-padding: 8; -fx-background-color: #F8FAFC; -fx-border-color: #CBD5E1; -fx-border-radius: 6;");
+
+        TextField txtAirline = new TextField();
+        txtAirline.setPromptText("Airline (e.g. Emirates, SriLankan)");
+        txtAirline.setStyle("-fx-padding: 8; -fx-background-color: #F8FAFC; -fx-border-color: #CBD5E1; -fx-border-radius: 6;");
+
+        TextField txtDep = new TextField();
+        txtDep.setPromptText("Departure City (e.g. Colombo)");
+        txtDep.setStyle("-fx-padding: 8; -fx-background-color: #F8FAFC; -fx-border-color: #CBD5E1; -fx-border-radius: 6;");
+
+        TextField txtArr = new TextField();
+        txtArr.setPromptText("Arrival City (e.g. Melbourne)");
+        txtArr.setStyle("-fx-padding: 8; -fx-background-color: #F8FAFC; -fx-border-color: #CBD5E1; -fx-border-radius: 6;");
+
+        TextField txtTime = new TextField();
+        txtTime.setPromptText("YYYY-MM-DD HH:MM:SS (e.g. 2026-09-25 15:30:00)");
+        txtTime.setStyle("-fx-padding: 8; -fx-background-color: #F8FAFC; -fx-border-color: #CBD5E1; -fx-border-radius: 6;");
+
+        TextField txtPrice = new TextField();
+        txtPrice.setPromptText("Price in USD (e.g. 520.00)");
+        txtPrice.setStyle("-fx-padding: 8; -fx-background-color: #F8FAFC; -fx-border-color: #CBD5E1; -fx-border-radius: 6;");
+
+        TextField txtSeats = new TextField();
+        txtSeats.setPromptText("Total Capacity (e.g. 200)");
+        txtSeats.setStyle("-fx-padding: 8; -fx-background-color: #F8FAFC; -fx-border-color: #CBD5E1; -fx-border-radius: 6;");
+
+        Label lblErr = new Label();
+        lblErr.setStyle("-fx-text-fill: #EF4444; -fx-font-size: 11px;");
+
+        Button btnSave = new Button("Create Flight");
+        btnSave.setStyle("-fx-background-color: #003366; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 9 18; -fx-background-radius: 6; -fx-cursor: hand;");
+
+        Button btnCancel = new Button("Cancel");
+        btnCancel.setStyle("-fx-background-color: #E2E8F0; -fx-text-fill: #334155; -fx-font-weight: bold; -fx-padding: 9 18; -fx-background-radius: 6; -fx-cursor: hand;");
+        btnCancel.setOnAction(e -> addStage.close());
+
+        btnSave.setOnAction(e -> {
+            try {
+                int flightId = Integer.parseInt(txtId.getText().trim());
+                String airline = txtAirline.getText().trim();
+                String dep = txtDep.getText().trim();
+                String arr = txtArr.getText().trim();
+                String time = txtTime.getText().trim();
+                double price = Double.parseDouble(txtPrice.getText().trim());
+                int totalSeats = Integer.parseInt(txtSeats.getText().trim());
+
+                if (airline.isEmpty() || dep.isEmpty() || arr.isEmpty() || time.isEmpty()) {
+                    lblErr.setText("Please fill all required fields.");
+                    return;
+                }
+
+                String insertSql = "INSERT INTO flights (flight_id, airline, departure_city, arrival_city, departure_datetime, price, total_seats, available_seats) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                try (Connection conn = DatabaseConnection.getConnection();
+                     PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
+                    pstmt.setInt(1, flightId);
+                    pstmt.setString(2, airline);
+                    pstmt.setString(3, dep);
+                    pstmt.setString(4, arr);
+                    pstmt.setString(5, time);
+                    pstmt.setDouble(6, price);
+                    pstmt.setInt(7, totalSeats);
+                    pstmt.setInt(8, totalSeats);
+                    pstmt.executeUpdate();
+
+                    addStage.close();
+                    showAlert(Alert.AlertType.INFORMATION, "Flight Added", "Flight #" + flightId + " (" + airline + ") was created successfully.");
+                    loadFlightsFromDatabase("", "");
+                }
+            } catch (NumberFormatException nfe) {
+                lblErr.setText("Flight ID, Price, and Seats must be valid numbers.");
+            } catch (SQLException ex) {
+                lblErr.setText("Database error: " + ex.getMessage());
+            }
+        });
+
+        HBox btns = new HBox(10, btnSave, btnCancel);
+        btns.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+
+        root.getChildren().addAll(
+            title,
+            new Label("Flight Number / ID:"), txtId,
+            new Label("Airline Name:"), txtAirline,
+            new Label("Departure City:"), txtDep,
+            new Label("Arrival City:"), txtArr,
+            new Label("Departure Date & Time:"), txtTime,
+            new Label("Ticket Price ($):"), txtPrice,
+            new Label("Total Available Seats:"), txtSeats,
+            lblErr,
+            btns
+        );
+
+        javafx.scene.Scene scene = new javafx.scene.Scene(root);
+        addStage.setScene(scene);
+        addStage.showAndWait();
     }
 
     private void showAlert(Alert.AlertType type, String title, String msg) {

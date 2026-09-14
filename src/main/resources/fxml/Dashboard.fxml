@@ -21,10 +21,17 @@
                        style="-fx-text-fill: #6c757d;"/>
             </VBox>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button text="&#8635; Refresh"
-                    onAction="#handleClear"
-                    styleClass="secondary-button"
-                    style="-fx-background-color: #E2E8F0; -fx-border-color: transparent;"/>
+            <HBox spacing="10">
+                <Button fx:id="btnAddFlight"
+                        text="+ Add Flight"
+                        onAction="#handleAddFlight"
+                        styleClass="primary-button"
+                        style="-fx-background-color: #003366; -fx-padding: 8 16;"/>
+                <Button text="&#8635; Refresh"
+                        onAction="#handleClear"
+                        styleClass="secondary-button"
+                        style="-fx-background-color: #E2E8F0; -fx-border-color: transparent;"/>
+            </HBox>
         </HBox>
 
         <!-- Flight Search &amp; Table Card -->

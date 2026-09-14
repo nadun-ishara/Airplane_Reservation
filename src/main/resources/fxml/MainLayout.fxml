@@ -28,7 +28,7 @@
             <!-- Brand -->
             <VBox spacing="3.0" style="-fx-padding: 0 0 24 25;">
                 <Label styleClass="brand-title" text="SkyLink Pro" />
-                <Label styleClass="brand-subtitle" text="✈  Admin Portal" />
+                <Label fx:id="lblPortalSubtitle" styleClass="brand-subtitle" text="✈  Portal" />
             </VBox>
 
             <!-- Section label -->
@@ -143,12 +143,14 @@
                         <Label fx:id="lblUserName"
                                style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #0A192F;"
                                text="Admin User" />
-                        <Label style="-fx-font-size: 10px; -fx-text-fill: #1CA1F2; -fx-font-weight: bold;"
+                        <Label fx:id="lblUserRole"
+                               style="-fx-font-size: 10px; -fx-text-fill: #1CA1F2; -fx-font-weight: bold;"
                                text="ADMIN" />
                     </VBox>
 
                     <!-- Avatar circle -->
-                    <Label style="-fx-background-color: #1CA1F2; -fx-text-fill: white;
+                    <Label fx:id="lblAvatar"
+                           style="-fx-background-color: #1CA1F2; -fx-text-fill: white;
                                   -fx-font-size: 14px; -fx-font-weight: bold;
                                   -fx-min-width: 38; -fx-min-height: 38;
                                   -fx-background-radius: 19;

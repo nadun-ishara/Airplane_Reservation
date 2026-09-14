@@ -72,6 +72,20 @@ public class BookingController {
             });
         }
 
+        // Auto-fill from active UserSession if available
+        com.airline.util.UserSession session = com.airline.util.UserSession.getInstance();
+        if (session != null) {
+            if (txtFullName != null && session.getFullName() != null) {
+                txtFullName.setText(session.getFullName());
+            }
+            if (txtEmail != null && session.getEmail() != null) {
+                txtEmail.setText(session.getEmail());
+            }
+            if (txtPassport != null && session.getNicPassport() != null) {
+                txtPassport.setText(session.getNicPassport());
+            }
+        }
+
         // Generate seat map
         generateSeatMap(null);
     }
