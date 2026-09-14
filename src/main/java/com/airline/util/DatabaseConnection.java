@@ -7,22 +7,36 @@ import java.sql.SQLException;
 
 public class DatabaseConnection {
 
-    public static Connection getConnection() {
-        // Load the .env file
-        Dotenv dotenv = Dotenv.load();
+    private static String url;
+    private static String user;
+    private static String password;
 
-        // Get the credentials
-        String url = dotenv.get("DB_URL");
-        String user = dotenv.get("DB_USER");
-        String password = dotenv.get("DB_PASSWORD");
+    static {
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException ignored) {}
 
         try {
-            // Connect to MySQL
-            return DriverManager.getConnection(url, user, password);
-        } catch (SQLException e) {
-            System.out.println("Database Connection Failed!");
-            e.printStackTrace();
-            return null;
+            Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
+            url = dotenv.get("DB_URL");
+            user = dotenv.get("DB_USER");
+            password = dotenv.get("DB_PASSWORD");
+        } catch (Exception e) {
+            System.out.println("[DatabaseConnection] Notice: .env not loaded, using default settings.");
         }
+
+        if (url == null || url.isBlank()) {
+            url = "jdbc:mysql://localhost:3306/airline_reservation?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+        }
+        if (user == null || user.isBlank()) {
+            user = "root";
+        }
+        if (password == null) {
+            password = "";
+        }
+    }
+
+    public static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(url, user, password);
     }
 }

@@ -1,14 +1,21 @@
 package com.airline.controller;
 
+import com.airline.util.DatabaseConnection;
+import com.airline.util.UserSession;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 /**
  * Controller for the Account Settings view.
- * Handles profile updates (username, email) and password changes with basic validation.
+ * Handles profile updates (full name, email) and password changes with live MySQL database persistence.
  */
 public class SettingsController {
 
@@ -28,9 +35,15 @@ public class SettingsController {
 
     @FXML
     public void initialize() {
-        // Pre-populate with current session values (placeholders for now)
-        txtUsername.setText("Admin User");
-        txtEmail.setText("admin@skylink.com");
+        populateFields();
+    }
+
+    private void populateFields() {
+        UserSession session = UserSession.getInstance();
+        if (session != null) {
+            txtUsername.setText(session.getFullName() != null ? session.getFullName() : "");
+            txtEmail.setText(session.getEmail() != null ? session.getEmail() : "");
+        }
     }
 
     @FXML
@@ -41,51 +54,129 @@ public class SettingsController {
         lblStatus.setText("");
         lblStatus.setStyle("-fx-font-size: 13px; -fx-font-weight: bold;");
 
-        boolean valid = true;
-
-        // --- Email validation ---
-        String email = txtEmail.getText().trim();
-        if (!email.isEmpty() && !email.matches("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$")) {
-            lblEmailError.setText("Please enter a valid email address.");
-            valid = false;
+        UserSession session = UserSession.getInstance();
+        if (session == null) {
+            lblStatus.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #EF4444;");
+            lblStatus.setText("Error: No active user session.");
+            return;
         }
 
-        // --- Password validation (only if user filled in the password section) ---
+        String fullName = txtUsername.getText().trim();
+        String email = txtEmail.getText().trim();
+
+        if (fullName.isEmpty()) {
+            lblStatus.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #EF4444;");
+            lblStatus.setText("Full Name cannot be blank.");
+            return;
+        }
+
+        // --- Email validation ---
+        if (email.isEmpty() || !email.matches("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$")) {
+            lblEmailError.setText("Please enter a valid email address.");
+            return;
+        }
+
+        // --- Password validation ---
         String currentPwd  = txtCurrentPassword.getText();
         String newPwd      = txtNewPassword.getText();
         String confirmPwd  = txtConfirmPassword.getText();
 
-        boolean anyPasswordFieldFilled = !currentPwd.isEmpty() || !newPwd.isEmpty() || !confirmPwd.isEmpty();
+        boolean changingPassword = !currentPwd.isEmpty() || !newPwd.isEmpty() || !confirmPwd.isEmpty();
 
-        if (anyPasswordFieldFilled) {
+        if (changingPassword) {
             if (currentPwd.isEmpty()) {
                 lblPasswordError.setText("Please enter your current password.");
-                valid = false;
-            } else if (newPwd.length() < 8) {
-                lblPasswordError.setText("New password must be at least 8 characters.");
-                valid = false;
+                return;
+            } else if (newPwd.length() < 6) {
+                lblPasswordError.setText("New password must be at least 6 characters.");
+                return;
             } else if (!newPwd.equals(confirmPwd)) {
                 lblPasswordError.setText("New passwords do not match.");
-                valid = false;
+                return;
             }
         }
 
-        if (!valid) return;
+        // --- MySQL Database Persistence ---
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            // If changing password or email, verify current credentials / uniqueness
+            if (changingPassword) {
+                String verifySql = "SELECT password FROM users WHERE user_id = ?";
+                try (PreparedStatement checkStmt = conn.prepareStatement(verifySql)) {
+                    checkStmt.setInt(1, session.getUserId());
+                    ResultSet rs = checkStmt.executeQuery();
+                    if (rs.next()) {
+                        String existingPass = rs.getString("password");
+                        if (!existingPass.equals(currentPwd)) {
+                            lblPasswordError.setText("Current password is incorrect.");
+                            return;
+                        }
+                    } else {
+                        lblPasswordError.setText("User record not found.");
+                        return;
+                    }
+                }
+            }
 
-        // All good — show success message (real persistence logic would go here)
-        lblStatus.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #28a745;");
-        lblStatus.setText("✓ Settings saved successfully!");
+            // Check email uniqueness if email changed
+            if (!email.equalsIgnoreCase(session.getEmail())) {
+                String checkEmailSql = "SELECT user_id FROM users WHERE email = ? AND user_id != ?";
+                try (PreparedStatement checkEmailStmt = conn.prepareStatement(checkEmailSql)) {
+                    checkEmailStmt.setString(1, email);
+                    checkEmailStmt.setInt(2, session.getUserId());
+                    ResultSet rs = checkEmailStmt.executeQuery();
+                    if (rs.next()) {
+                        lblEmailError.setText("This email is already in use by another account.");
+                        return;
+                    }
+                }
+            }
 
-        // Clear password fields after a successful save
-        txtCurrentPassword.clear();
-        txtNewPassword.clear();
-        txtConfirmPassword.clear();
+            // Update user in DB
+            if (changingPassword) {
+                String updateSql = "UPDATE users SET full_name = ?, email = ?, password = ? WHERE user_id = ?";
+                try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+                    updateStmt.setString(1, fullName);
+                    updateStmt.setString(2, email);
+                    updateStmt.setString(3, newPwd);
+                    updateStmt.setInt(4, session.getUserId());
+                    updateStmt.executeUpdate();
+                }
+            } else {
+                String updateSql = "UPDATE users SET full_name = ?, email = ? WHERE user_id = ?";
+                try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+                    updateStmt.setString(1, fullName);
+                    updateStmt.setString(2, email);
+                    updateStmt.setInt(3, session.getUserId());
+                    updateStmt.executeUpdate();
+                }
+            }
+
+            // Update active session and UI
+            session.setFullName(fullName);
+            session.setEmail(email);
+
+            if (MainController.getInstance() != null) {
+                MainController.getInstance().updateUserProfileDisplay();
+            }
+
+            lblStatus.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #28a745;");
+            lblStatus.setText("✓ Settings and profile updated successfully!");
+
+            // Clear password fields
+            txtCurrentPassword.clear();
+            txtNewPassword.clear();
+            txtConfirmPassword.clear();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            lblStatus.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #EF4444;");
+            lblStatus.setText("Database error: " + e.getMessage());
+        }
     }
 
     @FXML
     private void handleDiscard(ActionEvent event) {
-        // Reset fields to initialized values
-        initialize();
+        populateFields();
         txtCurrentPassword.clear();
         txtNewPassword.clear();
         txtConfirmPassword.clear();
