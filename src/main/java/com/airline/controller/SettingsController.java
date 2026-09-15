@@ -1,6 +1,7 @@
 package com.airline.controller;
 
 import com.airline.util.DatabaseConnection;
+import com.airline.util.PasswordUtil;
 import com.airline.util.UserSession;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -106,7 +107,7 @@ public class SettingsController {
                     ResultSet rs = checkStmt.executeQuery();
                     if (rs.next()) {
                         String existingPass = rs.getString("password");
-                        if (!existingPass.equals(currentPwd)) {
+                        if (!PasswordUtil.checkPassword(currentPwd, existingPass)) {
                             lblPasswordError.setText("Current password is incorrect.");
                             return;
                         }
@@ -137,7 +138,7 @@ public class SettingsController {
                 try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
                     updateStmt.setString(1, fullName);
                     updateStmt.setString(2, email);
-                    updateStmt.setString(3, newPwd);
+                    updateStmt.setString(3, PasswordUtil.hashPassword(newPwd));
                     updateStmt.setInt(4, session.getUserId());
                     updateStmt.executeUpdate();
                 }

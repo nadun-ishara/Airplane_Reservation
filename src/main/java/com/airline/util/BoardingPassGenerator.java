@@ -1,5 +1,11 @@
 package com.airline.util;
 
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.EncodeHintType;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
@@ -7,11 +13,14 @@ import com.itextpdf.text.pdf.PdfWriter;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Utility to generate modern, production-grade PDF boarding passes.
+ * Utility to generate modern, production-grade PDF boarding passes with embedded QR verification.
  */
 public class BoardingPassGenerator {
 
@@ -73,24 +82,61 @@ public class BoardingPassGenerator {
             document.add(headerTable);
             document.add(new Paragraph("\n"));
 
-            // PNR Box
-            PdfPTable pnrTable = new PdfPTable(1);
-            pnrTable.setWidthPercentage(100);
+            // PNR Box with Embedded 2D QR Code
+            PdfPTable pnrQrTable = new PdfPTable(2);
+            pnrQrTable.setWidthPercentage(100);
+            pnrQrTable.setWidths(new float[]{65f, 35f});
+
             PdfPCell pnrCell = new PdfPCell();
             pnrCell.setBackgroundColor(lightBg);
             pnrCell.setBorderColor(skyBlue);
-            pnrCell.setBorderWidth(2);
-            pnrCell.setPadding(12);
+            pnrCell.setBorderWidth(1.5f);
+            pnrCell.setPadding(14);
 
             Paragraph pnrLabel = new Paragraph("BOOKING REFERENCE (PNR)", labelFont);
-            pnrLabel.setAlignment(Element.ALIGN_CENTER);
             Paragraph pnrCode = new Paragraph(pnr, pnrFont);
-            pnrCode.setAlignment(Element.ALIGN_CENTER);
+            Paragraph pnrSub = new Paragraph("Status: " + (status != null ? status.toUpperCase() : "CONFIRMED") + "  •  Electronic Ticket", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, new BaseColor(40, 167, 69)));
 
             pnrCell.addElement(pnrLabel);
             pnrCell.addElement(pnrCode);
-            pnrTable.addCell(pnrCell);
-            document.add(pnrTable);
+            pnrCell.addElement(new Paragraph(" "));
+            pnrCell.addElement(pnrSub);
+            pnrQrTable.addCell(pnrCell);
+
+            // Generate high-resolution verification QR Code
+            PdfPCell qrCell = new PdfPCell();
+            qrCell.setBackgroundColor(lightBg);
+            qrCell.setBorderColor(skyBlue);
+            qrCell.setBorderWidth(1.5f);
+            qrCell.setPadding(8);
+            qrCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            qrCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+
+            try {
+                String qrData = String.format("SKYLINK|PNR:%s|PAX:%s|SEAT:%s|AIRLINE:%s|ROUTE:%s",
+                        pnr, passengerName, seatNumber, airline, route);
+                QRCodeWriter qrWriter = new QRCodeWriter();
+                Map<EncodeHintType, Object> hints = new HashMap<>();
+                hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.M);
+                hints.put(EncodeHintType.MARGIN, 1);
+                BitMatrix bitMatrix = qrWriter.encode(qrData, BarcodeFormat.QR_CODE, 200, 200, hints);
+
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                MatrixToImageWriter.writeToStream(bitMatrix, "PNG", baos);
+                Image qrImage = Image.getInstance(baos.toByteArray());
+                qrImage.scaleToFit(90, 90);
+                qrImage.setAlignment(Element.ALIGN_CENTER);
+
+                qrCell.addElement(qrImage);
+                Paragraph qrHint = new Paragraph("GATE VERIFICATION SCAN", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 7, darkGray));
+                qrHint.setAlignment(Element.ALIGN_CENTER);
+                qrCell.addElement(qrHint);
+            } catch (Exception e) {
+                qrCell.addElement(new Paragraph("[QR Code]", labelFont));
+            }
+            pnrQrTable.addCell(qrCell);
+
+            document.add(pnrQrTable);
             document.add(new Paragraph("\n"));
 
             // Details Table

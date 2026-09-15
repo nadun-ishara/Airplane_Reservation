@@ -9,8 +9,11 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import java.io.File;
+import java.io.PrintWriter;
 import java.sql.*;
 
 /**
@@ -211,6 +214,105 @@ public class MyBookingsController {
 
         if (success) {
             showAlert(Alert.AlertType.INFORMATION, "Boarding Pass Downloaded", "Boarding pass for PNR " + selected.getPnr() + " was saved successfully.");
+        }
+    }
+
+    @FXML
+    private void handleExportCsv(ActionEvent event) {
+        if (masterBookings.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "No Data", "There are no bookings to export.");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export Bookings to CSV");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files (*.csv)", "*.csv"));
+        fileChooser.setInitialFileName("Airline_Reservations_Report.csv");
+
+        Stage stage = (Stage) bookingsTable.getScene().getWindow();
+        File file = fileChooser.showSaveDialog(stage);
+        if (file == null) return;
+
+        try (PrintWriter writer = new PrintWriter(file)) {
+            writer.println("Booking ID,PNR,Flight ID,Airline,Route,Departure Time,Passenger Name,Seat,Status,Price ($)");
+
+            for (BookingRow row : bookingsTable.getItems()) {
+                writer.printf("%d,\"%s\",%d,\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%.2f%n",
+                        row.getBookingId(),
+                        row.getPnr(),
+                        row.getFlightId(),
+                        row.getAirline(),
+                        row.getRoute(),
+                        row.getDepartureTime(),
+                        row.getPassengerName(),
+                        row.getSeatNumber(),
+                        row.getStatus(),
+                        row.getPrice()
+                );
+            }
+
+            showAlert(Alert.AlertType.INFORMATION, "Export Successful",
+                    "Exported " + bookingsTable.getItems().size() + " records to:\n" + file.getAbsolutePath());
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Export Error", "Could not export CSV:\n" + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleWebCheckIn(ActionEvent event) {
+        BookingRow selected = bookingsTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showAlert(Alert.AlertType.WARNING, "No Selection", "Please select a booking to check in.");
+            return;
+        }
+
+        if (!"Paid".equalsIgnoreCase(selected.getStatus())) {
+            showAlert(Alert.AlertType.WARNING, "Check-In Unavailable",
+                    "Online check-in is only available for confirmed 'Paid' bookings.");
+            return;
+        }
+
+        // Check if already checked in
+        String checkSql = "SELECT checkin_id, boarding_time FROM check_in WHERE reservation_id = ?";
+        String insertSql = "INSERT INTO check_in (reservation_id, seat_number, boarding_time) VALUES (?, ?, NOW())";
+
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            boolean alreadyCheckedIn = false;
+            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+                checkStmt.setInt(1, selected.getBookingId());
+                ResultSet rs = checkStmt.executeQuery();
+                if (rs.next()) {
+                    alreadyCheckedIn = true;
+                }
+            }
+
+            if (!alreadyCheckedIn) {
+                try (PreparedStatement insStmt = conn.prepareStatement(insertSql)) {
+                    insStmt.setInt(1, selected.getBookingId());
+                    insStmt.setString(2, selected.getSeatNumber());
+                    insStmt.executeUpdate();
+                }
+            }
+
+            String gate = "Gate " + (char)('A' + (selected.getBookingId() % 4)) + String.format("%02d", (selected.getBookingId() % 15) + 1);
+
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Web Check-In Complete");
+            alert.setHeaderText("✈ Check-In Confirmed for " + selected.getPassengerName());
+            alert.setContentText(
+                "Booking Reference (PNR): " + selected.getPnr() + "\n" +
+                "Flight: " + selected.getAirline() + " (" + selected.getRoute() + ")\n" +
+                "Seat: " + selected.getSeatNumber() + "\n" +
+                "Assigned Departure Gate: " + gate + "\n" +
+                "Boarding Status: READY TO BOARD\n\n" +
+                "Your boarding pass is verified and ready. You can download or print it now."
+            );
+            alert.showAndWait();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Database Error", "Check-in failed: " + e.getMessage());
         }
     }
 

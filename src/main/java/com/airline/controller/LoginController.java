@@ -1,6 +1,7 @@
 package com.airline.controller;
 
 import com.airline.util.DatabaseConnection;
+import com.airline.util.PasswordUtil;
 import com.airline.util.UserSession;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -48,34 +49,49 @@ public class LoginController {
             return;
         }
 
-        // Validate against the `users` table in MySQL database
-        String query = "SELECT user_id, full_name, email, role, nic_passport FROM users WHERE email = ? AND password = ?";
+        // Validate against users table in MySQL database using BCrypt
+        String query = "SELECT user_id, full_name, email, password, role, nic_passport FROM users WHERE email = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
 
             pstmt.setString(1, email.trim());
-            pstmt.setString(2, password);
-
             ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {
-                int userId = rs.getInt("user_id");
-                String fullName = rs.getString("full_name");
-                String userEmail = rs.getString("email");
-                String role = rs.getString("role");
-                String nicPassport = rs.getString("nic_passport");
+                String storedPassword = rs.getString("password");
 
-                // Initialize thread-safe session
-                UserSession.initSession(userId, fullName, userEmail, role, nicPassport);
+                if (PasswordUtil.checkPassword(password, storedPassword)) {
+                    int userId = rs.getInt("user_id");
+                    String fullName = rs.getString("full_name");
+                    String userEmail = rs.getString("email");
+                    String role = rs.getString("role");
+                    String nicPassport = rs.getString("nic_passport");
 
-                // Close the Login Window
-                Stage loginStage = (Stage) loginButton.getScene().getWindow();
-                loginStage.close();
+                    // Progressive Migration: If password was plain-text, transparently upgrade to BCrypt
+                    if (PasswordUtil.needsRehash(storedPassword)) {
+                        try (PreparedStatement updateStmt = conn.prepareStatement("UPDATE users SET password = ? WHERE user_id = ?")) {
+                            updateStmt.setString(1, PasswordUtil.hashPassword(password));
+                            updateStmt.setInt(2, userId);
+                            updateStmt.executeUpdate();
+                            System.out.println("[Security] Upgraded user " + userEmail + " password to BCrypt hash.");
+                        } catch (SQLException e) {
+                            System.err.println("[Security] Could not rehash password: " + e.getMessage());
+                        }
+                    }
 
-                // Load the Dashboard
-                loadDashboard(fullName, role);
+                    // Initialize thread-safe session
+                    UserSession.initSession(userId, fullName, userEmail, role, nicPassport);
 
+                    // Close the Login Window
+                    Stage loginStage = (Stage) loginButton.getScene().getWindow();
+                    loginStage.close();
+
+                    // Load the Dashboard
+                    loadDashboard(fullName, role);
+                } else {
+                    showAlert(Alert.AlertType.ERROR, "Login Failed", "Incorrect email or password.");
+                }
             } else {
                 showAlert(Alert.AlertType.ERROR, "Login Failed", "Incorrect email or password.");
             }
@@ -165,7 +181,7 @@ public class LoginController {
                 try (PreparedStatement insStmt = conn.prepareStatement(insertSql)) {
                     insStmt.setString(1, nameVal);
                     insStmt.setString(2, emailVal);
-                    insStmt.setString(3, passVal);
+                    insStmt.setString(3, PasswordUtil.hashPassword(passVal));
                     insStmt.setString(4, nicVal.toUpperCase());
                     insStmt.executeUpdate();
                 }
