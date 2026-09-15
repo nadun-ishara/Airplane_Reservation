@@ -37,6 +37,8 @@ public class BookingController {
     private ToggleGroup seatGroup = new ToggleGroup();
     private String selectedSeat = null;
     private Flight currentFlight = null;
+    private double calculatedPrice = 0.0;
+    private String selectedSeatClass = "Economy Class";
 
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
     private static final Pattern PASSPORT_PATTERN = Pattern.compile("^[A-Z0-9]{5,12}$");
@@ -95,28 +97,29 @@ public class BookingController {
      */
     public void setFlight(Flight flight) {
         this.currentFlight = flight;
+        this.calculatedPrice = flight.getPrice();
         lblFlightInfo.setText("Flight " + flight.getAirline() + " • " +
                 flight.getDepartureCity() + " → " + flight.getArrivalCity());
         lblTotalPrice.setText(String.format("$%.2f", flight.getPrice()));
 
-        // Reload seat map with real data for this flight
-        seatMapContainer.getChildren().clear();
-        seatGroup = new ToggleGroup();
-        generateSeatMap(flight.getFlightId());
+        // Regenerate seat map using this flight's ID to lock occupied seats
+        if (seatMapContainer != null) {
+            seatMapContainer.getChildren().clear();
+            generateSeatMap(flight.getFlightId());
+        }
     }
 
     private Set<String> getOccupiedSeats(int flightId) {
         Set<String> occupied = new HashSet<>();
-        // Seat numbers are now directly in reservations table
-        String query = "SELECT seat_number FROM reservations WHERE flight_id = ?";
+        String sql = "SELECT seat_number FROM reservations WHERE flight_id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(query)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, flightId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                String seat = rs.getString("seat_number");
-                if (seat != null && !seat.isEmpty()) {
-                    occupied.add(seat);
+                String s = rs.getString("seat_number");
+                if (s != null && !s.trim().isEmpty()) {
+                    occupied.add(s.trim().toUpperCase());
                 }
             }
         } catch (Exception e) {
@@ -170,7 +173,7 @@ public class BookingController {
             Label rowLabel = new Label(String.valueOf(r));
             rowLabel.setPrefWidth(25);
             rowLabel.setAlignment(Pos.CENTER);
-            rowLabel.setStyle("-fx-text-fill: #94A3B8; -fx-font-size: 12px;");
+            rowLabel.setStyle(r <= 3 ? "-fx-text-fill: #B45309; -fx-font-weight: bold; -fx-font-size: 12px;" : "-fx-text-fill: #94A3B8; -fx-font-size: 12px;");
             grid.add(rowLabel, 0, r);
 
             for (int c = 0; c < cols.length; c++) {
@@ -187,7 +190,7 @@ public class BookingController {
             Label rowLabelR = new Label(String.valueOf(r));
             rowLabelR.setPrefWidth(25);
             rowLabelR.setAlignment(Pos.CENTER);
-            rowLabelR.setStyle("-fx-text-fill: #94A3B8; -fx-font-size: 12px;");
+            rowLabelR.setStyle(r <= 3 ? "-fx-text-fill: #B45309; -fx-font-weight: bold; -fx-font-size: 12px;" : "-fx-text-fill: #94A3B8; -fx-font-size: 12px;");
             grid.add(rowLabelR, 8, r);
         }
 
@@ -199,6 +202,9 @@ public class BookingController {
         btn.setPrefWidth(46);
         btn.setPrefHeight(40);
 
+        int row = Integer.parseInt(seatId.replaceAll("[^0-9]", ""));
+        boolean isBusiness = row <= 3;
+
         if (occupied) {
             btn.setDisable(true);
             btn.setStyle(
@@ -208,7 +214,11 @@ public class BookingController {
             );
         } else {
             btn.setToggleGroup(seatGroup);
-            applyAvailableStyle(btn);
+            if (isBusiness) {
+                applyAvailableBusinessStyle(btn);
+            } else {
+                applyAvailableStyle(btn);
+            }
             btn.setOnAction(e -> handleSeatSelection(btn));
         }
         return btn;
@@ -231,23 +241,54 @@ public class BookingController {
         );
     }
 
+    private void applyAvailableBusinessStyle(ToggleButton btn) {
+        btn.setStyle(
+            "-fx-background-color: #FFFBEB; -fx-background-radius: 8;" +
+            "-fx-text-fill: #B45309; -fx-font-size: 10px; -fx-font-weight: bold;" +
+            "-fx-border-color: #F59E0B; -fx-border-width: 1.5; -fx-border-radius: 8; -fx-cursor: hand;"
+        );
+    }
+
+    private void applySelectedBusinessStyle(ToggleButton btn) {
+        btn.setStyle(
+            "-fx-background-color: #D97706; -fx-background-radius: 8;" +
+            "-fx-text-fill: white; -fx-font-size: 10px; -fx-font-weight: bold;" +
+            "-fx-border-color: #92400E; -fx-border-radius: 8; -fx-cursor: hand;" +
+            "-fx-effect: dropshadow(gaussian, rgba(217,119,6,0.45), 8, 0, 0, 2);"
+        );
+    }
+
     private void handleSeatSelection(ToggleButton clicked) {
         // Reset all visible seat buttons
         for (Toggle t : seatGroup.getToggles()) {
             ToggleButton tb = (ToggleButton) t;
-            if (!tb.isDisabled()) applyAvailableStyle(tb);
+            if (!tb.isDisabled()) {
+                int r = Integer.parseInt(tb.getText().replaceAll("[^0-9]", ""));
+                if (r <= 3) applyAvailableBusinessStyle(tb);
+                else applyAvailableStyle(tb);
+            }
         }
 
         if (clicked.isSelected()) {
-            applySelectedStyle(clicked);
             selectedSeat = clicked.getText();
+            int row = Integer.parseInt(selectedSeat.replaceAll("[^0-9]", ""));
+            boolean isBusiness = row <= 3;
+
+            if (isBusiness) {
+                applySelectedBusinessStyle(clicked);
+                selectedSeatClass = "Business Class";
+            } else {
+                applySelectedStyle(clicked);
+                selectedSeatClass = "Economy Class";
+            }
+
+            double basePrice = currentFlight != null ? currentFlight.getPrice() : 450.00;
+            calculatedPrice = isBusiness ? (basePrice * 1.5) : basePrice;
 
             String seatType = selectedSeat.endsWith("A") || selectedSeat.endsWith("F")
                     ? "Window" : selectedSeat.endsWith("C") || selectedSeat.endsWith("D") ? "Aisle" : "Middle";
-            lblSelectedSeat.setText(selectedSeat + " (" + seatType + ")");
-
-            double price = currentFlight != null ? currentFlight.getPrice() : 450.00;
-            lblTotalPrice.setText(String.format("$%.2f", price));
+            lblSelectedSeat.setText(selectedSeat + " (" + selectedSeatClass + " • " + seatType + ")");
+            lblTotalPrice.setText(String.format("$%.2f", calculatedPrice));
             lblTotalPrice.setStyle("-fx-font-size: 26px; -fx-text-fill: #0A192F; -fx-font-weight: bold;");
 
             // Activate proceed button
@@ -259,11 +300,14 @@ public class BookingController {
             );
         } else {
             selectedSeat = null;
+            calculatedPrice = 0.0;
+            selectedSeatClass = "Economy Class";
             lblSelectedSeat.setText("None Selected");
             lblTotalPrice.setText("$0.00");
             btnProceed.setStyle(
                 "-fx-background-color: #94A3B8; -fx-text-fill: white;" +
-                "-fx-font-weight: bold; -fx-background-radius: 8; -fx-font-size: 13px; -fx-cursor: hand;"
+                "-fx-font-weight: bold; -fx-background-radius: 8;" +
+                "-fx-font-size: 13px;"
             );
         }
     }
@@ -298,7 +342,9 @@ public class BookingController {
                 comboTitle.getValue() + " " + name,
                 passport.toUpperCase(),
                 email,
-                selectedSeat
+                selectedSeat,
+                calculatedPrice,
+                selectedSeatClass
             );
 
             MainController.getInstance().setView(paymentView);

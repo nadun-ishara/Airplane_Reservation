@@ -73,6 +73,14 @@
 
             <!-- Action Row -->
             <HBox alignment="CENTER_RIGHT" spacing="12">
+                <Button text="📥 Export to CSV"
+                        onAction="#handleExportCsv"
+                        styleClass="secondary-button"
+                        style="-fx-background-color: #FFFFFF; -fx-border-color: #CBD5E1; -fx-text-fill: #334155; -fx-padding: 8 18;"/>
+                <Button text="✈ Web Check-In"
+                        onAction="#handleWebCheckIn"
+                        styleClass="primary-button"
+                        style="-fx-background-color: #059669; -fx-padding: 9 18;"/>
                 <Button text="Download Boarding Pass (PDF)"
                         onAction="#handleDownloadBoardingPass"
                         styleClass="primary-button"

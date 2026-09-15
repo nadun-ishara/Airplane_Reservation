@@ -20,26 +20,32 @@
                style="-fx-text-fill: #6c757d; -fx-font-size: 13px;"/>
 
         <!-- Legend -->
-        <HBox spacing="20" alignment="CENTER_LEFT"
-              style="-fx-padding: 8 20 8 20; -fx-background-color: #F8FAFC;
-                     -fx-background-radius: 20; -fx-max-width: 380;">
+        <HBox spacing="14" alignment="CENTER_LEFT"
+              style="-fx-padding: 8 16 8 16; -fx-background-color: #F8FAFC;
+                     -fx-background-radius: 20; -fx-max-width: 480;">
+            <HBox spacing="6" alignment="CENTER_LEFT">
+                <Pane style="-fx-background-color: #FFFBEB; -fx-border-color: #F59E0B;
+                              -fx-border-radius: 4; -fx-background-radius: 4;
+                              -fx-min-width: 14; -fx-min-height: 14; -fx-max-width: 14; -fx-max-height: 14;"/>
+                <Label text="Business" style="-fx-text-fill: #B45309; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+            </HBox>
             <HBox spacing="6" alignment="CENTER_LEFT">
                 <Pane style="-fx-background-color: #FFFFFF; -fx-border-color: #CBD5E1;
                               -fx-border-radius: 4; -fx-background-radius: 4;
-                              -fx-min-width: 16; -fx-min-height: 16; -fx-max-width: 16; -fx-max-height: 16;"/>
-                <Label text="Available" style="-fx-text-fill: #475569; -fx-font-size: 12px;"/>
+                              -fx-min-width: 14; -fx-min-height: 14; -fx-max-width: 14; -fx-max-height: 14;"/>
+                <Label text="Economy" style="-fx-text-fill: #475569; -fx-font-size: 11px;"/>
             </HBox>
             <HBox spacing="6" alignment="CENTER_LEFT">
                 <Pane style="-fx-background-color: #1CA1F2; -fx-border-radius: 4;
                               -fx-background-radius: 4;
-                              -fx-min-width: 16; -fx-min-height: 16; -fx-max-width: 16; -fx-max-height: 16;"/>
-                <Label text="Selected" style="-fx-text-fill: #475569; -fx-font-size: 12px;"/>
+                              -fx-min-width: 14; -fx-min-height: 14; -fx-max-width: 14; -fx-max-height: 14;"/>
+                <Label text="Selected" style="-fx-text-fill: #475569; -fx-font-size: 11px;"/>
             </HBox>
             <HBox spacing="6" alignment="CENTER_LEFT">
                 <Pane style="-fx-background-color: #CBD5E1; -fx-border-radius: 4;
                               -fx-background-radius: 4;
-                              -fx-min-width: 16; -fx-min-height: 16; -fx-max-width: 16; -fx-max-height: 16;"/>
-                <Label text="Occupied" style="-fx-text-fill: #475569; -fx-font-size: 12px;"/>
+                              -fx-min-width: 14; -fx-min-height: 14; -fx-max-width: 14; -fx-max-height: 14;"/>
+                <Label text="Occupied" style="-fx-text-fill: #475569; -fx-font-size: 11px;"/>
             </HBox>
         </HBox>
 

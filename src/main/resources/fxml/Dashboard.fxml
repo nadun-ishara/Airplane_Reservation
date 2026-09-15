@@ -27,6 +27,16 @@
                         onAction="#handleAddFlight"
                         styleClass="primary-button"
                         style="-fx-background-color: #003366; -fx-padding: 8 16;"/>
+                <Button fx:id="btnEditFlight"
+                        text="✎ Edit Flight"
+                        onAction="#handleEditFlight"
+                        styleClass="secondary-button"
+                        style="-fx-background-color: #FFFFFF; -fx-border-color: #CBD5E1; -fx-text-fill: #334155; -fx-padding: 8 16;"/>
+                <Button fx:id="btnDeleteFlight"
+                        text="🗑 Delete"
+                        onAction="#handleDeleteFlight"
+                        styleClass="secondary-button"
+                        style="-fx-background-color: #FEF2F2; -fx-border-color: #FECACA; -fx-text-fill: #DC2626; -fx-padding: 8 16;"/>
                 <Button text="&#8635; Refresh"
                         onAction="#handleClear"
                         styleClass="secondary-button"

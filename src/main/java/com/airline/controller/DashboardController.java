@@ -32,6 +32,8 @@ public class DashboardController {
 
     // UX elements
     @FXML private Button  btnAddFlight;
+    @FXML private Button  btnEditFlight;
+    @FXML private Button  btnDeleteFlight;
     @FXML private Button  btnBook;
     @FXML private Label   lblSelectHint;
     @FXML private HBox    selectedFlightPanel;
@@ -51,12 +53,22 @@ public class DashboardController {
         colPrice    .setCellValueFactory(new PropertyValueFactory<>("price"));
         colSeats    .setCellValueFactory(new PropertyValueFactory<>("availableSeats"));
 
-        // Add Flight button only visible to Admins
+        // Admin action buttons only visible to Admins
         com.airline.util.UserSession session = com.airline.util.UserSession.getInstance();
+        boolean isAdmin = (session != null && session.isAdmin());
         if (btnAddFlight != null) {
-            boolean isAdmin = (session != null && session.isAdmin());
             btnAddFlight.setVisible(isAdmin);
             btnAddFlight.setManaged(isAdmin);
+        }
+        if (btnEditFlight != null) {
+            btnEditFlight.setVisible(isAdmin);
+            btnEditFlight.setManaged(isAdmin);
+            btnEditFlight.setDisable(true);
+        }
+        if (btnDeleteFlight != null) {
+            btnDeleteFlight.setVisible(isAdmin);
+            btnDeleteFlight.setManaged(isAdmin);
+            btnDeleteFlight.setDisable(true);
         }
 
         // ── Selection listener ──────────────────────────────────────────────
@@ -73,6 +85,9 @@ public class DashboardController {
     // Called whenever a row is selected or deselected
     // -----------------------------------------------------------------------
     private void onFlightSelected(Flight flight) {
+        com.airline.util.UserSession session = com.airline.util.UserSession.getInstance();
+        boolean isAdmin = (session != null && session.isAdmin());
+
         if (flight == null) {
             // Nothing selected — reset to default state
             btnBook.setDisable(true);
@@ -81,10 +96,16 @@ public class DashboardController {
             lblSelectHint.setManaged(true);
             selectedFlightPanel.setVisible(false);
             selectedFlightPanel.setManaged(false);
+
+            if (btnEditFlight != null) btnEditFlight.setDisable(true);
+            if (btnDeleteFlight != null) btnDeleteFlight.setDisable(true);
         } else {
             // A row is selected — activate the Book button
             btnBook.setDisable(false);
             btnBook.setStyle(""); // reverts to .success-button CSS (green)
+
+            if (btnEditFlight != null) btnEditFlight.setDisable(!isAdmin);
+            if (btnDeleteFlight != null) btnDeleteFlight.setDisable(!isAdmin);
 
             // Hide hint, show selection panel
             lblSelectHint.setVisible(false);
@@ -299,6 +320,155 @@ public class DashboardController {
         javafx.scene.Scene scene = new javafx.scene.Scene(root);
         addStage.setScene(scene);
         addStage.showAndWait();
+    }
+
+    @FXML
+    void handleEditFlight(ActionEvent event) {
+        Flight selected = flightTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showAlert(Alert.AlertType.WARNING, "No Flight Selected", "Please select a flight to edit.");
+            return;
+        }
+
+        Stage editStage = new Stage();
+        editStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        editStage.setTitle("SkyLink Pro - Edit Flight #" + selected.getFlightId());
+
+        javafx.scene.layout.VBox root = new javafx.scene.layout.VBox(12);
+        root.setStyle("-fx-background-color: #FFFFFF; -fx-padding: 24;");
+        root.setPrefWidth(420);
+
+        Label title = new Label("Edit Flight #" + selected.getFlightId());
+        title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #003366;");
+
+        TextField txtAirline = new TextField(selected.getAirline());
+        txtAirline.setStyle("-fx-padding: 8; -fx-background-color: #F8FAFC; -fx-border-color: #CBD5E1; -fx-border-radius: 6;");
+
+        TextField txtDep = new TextField(selected.getDepartureCity());
+        txtDep.setStyle("-fx-padding: 8; -fx-background-color: #F8FAFC; -fx-border-color: #CBD5E1; -fx-border-radius: 6;");
+
+        TextField txtArr = new TextField(selected.getArrivalCity());
+        txtArr.setStyle("-fx-padding: 8; -fx-background-color: #F8FAFC; -fx-border-color: #CBD5E1; -fx-border-radius: 6;");
+
+        TextField txtTime = new TextField(selected.getDepartureDatetime());
+        txtTime.setStyle("-fx-padding: 8; -fx-background-color: #F8FAFC; -fx-border-color: #CBD5E1; -fx-border-radius: 6;");
+
+        TextField txtPrice = new TextField(String.valueOf(selected.getPrice()));
+        txtPrice.setStyle("-fx-padding: 8; -fx-background-color: #F8FAFC; -fx-border-color: #CBD5E1; -fx-border-radius: 6;");
+
+        TextField txtSeats = new TextField(String.valueOf(selected.getAvailableSeats()));
+        txtSeats.setStyle("-fx-padding: 8; -fx-background-color: #F8FAFC; -fx-border-color: #CBD5E1; -fx-border-radius: 6;");
+
+        Label lblErr = new Label();
+        lblErr.setStyle("-fx-text-fill: #EF4444; -fx-font-size: 11px;");
+
+        Button btnUpdate = new Button("Update Flight");
+        btnUpdate.setStyle("-fx-background-color: #003366; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 9 18; -fx-background-radius: 6; -fx-cursor: hand;");
+
+        Button btnCancel = new Button("Cancel");
+        btnCancel.setStyle("-fx-background-color: #E2E8F0; -fx-text-fill: #334155; -fx-font-weight: bold; -fx-padding: 9 18; -fx-background-radius: 6; -fx-cursor: hand;");
+        btnCancel.setOnAction(e -> editStage.close());
+
+        btnUpdate.setOnAction(e -> {
+            try {
+                String airline = txtAirline.getText().trim();
+                String dep = txtDep.getText().trim();
+                String arr = txtArr.getText().trim();
+                String time = txtTime.getText().trim();
+                double price = Double.parseDouble(txtPrice.getText().trim());
+                int availableSeats = Integer.parseInt(txtSeats.getText().trim());
+
+                if (airline.isEmpty() || dep.isEmpty() || arr.isEmpty() || time.isEmpty()) {
+                    lblErr.setText("Please fill all required fields.");
+                    return;
+                }
+
+                String updateSql = "UPDATE flights SET airline = ?, departure_city = ?, arrival_city = ?, departure_datetime = ?, price = ?, available_seats = ? WHERE flight_id = ?";
+                try (Connection conn = DatabaseConnection.getConnection();
+                     PreparedStatement pstmt = conn.prepareStatement(updateSql)) {
+                    pstmt.setString(1, airline);
+                    pstmt.setString(2, dep);
+                    pstmt.setString(3, arr);
+                    pstmt.setString(4, time);
+                    pstmt.setDouble(5, price);
+                    pstmt.setInt(6, availableSeats);
+                    pstmt.setInt(7, selected.getFlightId());
+                    pstmt.executeUpdate();
+
+                    editStage.close();
+                    showAlert(Alert.AlertType.INFORMATION, "Flight Updated", "Flight #" + selected.getFlightId() + " updated successfully.");
+                    loadFlightsFromDatabase("", "");
+                }
+            } catch (NumberFormatException nfe) {
+                lblErr.setText("Price and Seats must be valid numbers.");
+            } catch (SQLException ex) {
+                lblErr.setText("Database error: " + ex.getMessage());
+            }
+        });
+
+        HBox btns = new HBox(10, btnUpdate, btnCancel);
+        btns.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+
+        root.getChildren().addAll(
+            title,
+            new Label("Airline Name:"), txtAirline,
+            new Label("Departure City:"), txtDep,
+            new Label("Arrival City:"), txtArr,
+            new Label("Departure Date & Time:"), txtTime,
+            new Label("Ticket Price ($):"), txtPrice,
+            new Label("Available Seats:"), txtSeats,
+            lblErr,
+            btns
+        );
+
+        javafx.scene.Scene scene = new javafx.scene.Scene(root);
+        editStage.setScene(scene);
+        editStage.showAndWait();
+    }
+
+    @FXML
+    void handleDeleteFlight(ActionEvent event) {
+        Flight selected = flightTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showAlert(Alert.AlertType.WARNING, "No Flight Selected", "Please select a flight to delete.");
+            return;
+        }
+
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Confirm Flight Deletion");
+        confirm.setHeaderText("Delete Flight #" + selected.getFlightId() + " (" + selected.getAirline() + ")?");
+        confirm.setContentText("Warning: Deleting this flight will also remove its associated reservations. This action cannot be undone.");
+
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                try (Connection conn = DatabaseConnection.getConnection()) {
+                    conn.setAutoCommit(false);
+                    // Remove check_ins for this flight's reservations
+                    try (PreparedStatement ps1 = conn.prepareStatement("DELETE FROM check_in WHERE reservation_id IN (SELECT reservation_id FROM reservations WHERE flight_id = ?)")) {
+                        ps1.setInt(1, selected.getFlightId());
+                        ps1.executeUpdate();
+                    }
+                    // Remove reservations
+                    try (PreparedStatement ps2 = conn.prepareStatement("DELETE FROM reservations WHERE flight_id = ?")) {
+                        ps2.setInt(1, selected.getFlightId());
+                        ps2.executeUpdate();
+                    }
+                    // Delete flight
+                    try (PreparedStatement ps3 = conn.prepareStatement("DELETE FROM flights WHERE flight_id = ?")) {
+                        ps3.setInt(1, selected.getFlightId());
+                        ps3.executeUpdate();
+                    }
+                    conn.commit();
+                    conn.setAutoCommit(true);
+
+                    showAlert(Alert.AlertType.INFORMATION, "Flight Deleted", "Flight #" + selected.getFlightId() + " has been successfully removed.");
+                    loadFlightsFromDatabase("", "");
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                    showAlert(Alert.AlertType.ERROR, "Deletion Failed", "Database error: " + ex.getMessage());
+                }
+            }
+        });
     }
 
     private void showAlert(Alert.AlertType type, String title, String msg) {

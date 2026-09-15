@@ -52,6 +52,8 @@ public class PaymentModalController {
     private String  passport;
     private String  email;
     private String  seatNumber;
+    private double  finalFare = 0.0;
+    private String  seatClass = "Economy Class";
 
     @FXML
     public void initialize() {
@@ -66,15 +68,20 @@ public class PaymentModalController {
     }
 
     public void setBookingDetails(Flight flight, String name, String passport, String email, String seat) {
+        setBookingDetails(flight, name, passport, email, seat, flight != null ? flight.getPrice() : 0.0, "Economy Class");
+    }
+
+    public void setBookingDetails(Flight flight, String name, String passport, String email, String seat, double price, String seatClass) {
         this.flight        = flight;
         this.passengerName = name;
         this.passport      = passport;
         this.email         = email;
         this.seatNumber    = seat;
+        this.finalFare     = price > 0 ? price : (flight != null ? flight.getPrice() : 0.0);
+        this.seatClass     = seatClass != null ? seatClass : "Economy Class";
 
-        double price = flight != null ? flight.getPrice() : 0.0;
-        lblAmount      .setText(String.format("Total Amount Due: $%.2f", price));
-        lblPassengerInfo.setText(name + "  |  Seat: " + seat);
+        lblAmount.setText(String.format("Total Amount Due: $%.2f", this.finalFare));
+        lblPassengerInfo.setText(name + "  |  Seat: " + seat + " (" + this.seatClass + ")");
     }
 
     @FXML
@@ -184,7 +191,7 @@ public class PaymentModalController {
             Label lblPass = new Label("Passenger: " + passengerName);
             lblPass.setStyle("-fx-font-size: 15px; -fx-text-fill: #334155; -fx-font-family: 'Segoe UI', sans-serif;");
             
-            Label lblSeatDetails = new Label("Seat: " + seatNumber);
+            Label lblSeatDetails = new Label("Seat: " + seatNumber + "  (" + seatClass + ")");
             lblSeatDetails.setStyle("-fx-font-size: 15px; -fx-text-fill: #334155; -fx-font-family: 'Segoe UI', sans-serif;");
             
             Label lblPnr = new Label("PNR: " + pnr);
@@ -202,9 +209,9 @@ public class PaymentModalController {
                 String airline = flight != null ? flight.getAirline() : "SkyLink Pro";
                 String route = flight != null ? (flight.getDepartureCity() + " → " + flight.getArrivalCity()) : "Scheduled Route";
                 String time = flight != null ? flight.getDepartureDatetime() : "Scheduled";
-                double price = flight != null ? flight.getPrice() : 0.0;
+                double price = finalFare > 0 ? finalFare : (flight != null ? flight.getPrice() : 0.0);
                 boolean ok = com.airline.util.BoardingPassGenerator.generate(
-                    successStage, pnr, passengerName, airline, route, time, seatNumber, price, "Paid"
+                    successStage, pnr, passengerName, airline, route, time, seatNumber + " (" + seatClass + ")", price, "Paid"
                 );
                 if (ok) {
                     showAlert(Alert.AlertType.INFORMATION, "Boarding Pass Generated", "Boarding pass PDF has been generated and saved successfully!");
